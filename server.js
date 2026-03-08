@@ -65,6 +65,15 @@ async function fetchDoc() {
     ["https://www.googleapis.com/auth/documents.readonly"]
   );
 
+  // Explicitly authorize and catch auth errors
+  try {
+    await auth.authorize();
+    console.log("[fetch] JWT auth successful");
+  } catch (authErr) {
+    console.error("[fetch] JWT auth FAILED:", authErr.message);
+    throw authErr;
+  }
+
   const docs = google.docs({ version: "v1", auth });
   const res = await docs.documents.get({ documentId: process.env.GOOGLE_DOC_ID });
 
