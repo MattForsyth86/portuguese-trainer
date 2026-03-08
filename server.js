@@ -44,19 +44,9 @@ function recoverJSON(text) {
 // ---------- Google Doc fetch ----------
 
 async function fetchDoc() {
-  console.log("[fetch] Email:", process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL);
-  console.log("[fetch] Doc ID:", process.env.GOOGLE_DOC_ID);
-  // Handle ALL possible newline formats from env vars
-  let privateKey = process.env.GOOGLE_PRIVATE_KEY || "";
-  console.log("[fetch] Raw key length:", privateKey.length);
-  console.log("[fetch] Has literal backslash-n:", privateKey.includes("\\n"));
-  console.log("[fetch] Has real newlines:", privateKey.includes("\n"));
-
-  // Replace literal \n with real newlines
-  privateKey = privateKey.split("\\n").join("\n");
-
-  console.log("[fetch] Processed key starts with:", privateKey.substring(0, 30));
-  console.log("[fetch] Processed key has newlines:", privateKey.includes("\n"));
+  // Handle literal \n in env var from Digital Ocean
+  let privateKey = (process.env.GOOGLE_PRIVATE_KEY || "").split("\\n").join("\n");
+  const docId = (process.env.GOOGLE_DOC_ID || "").trim();
 
   const auth = new google.auth.JWT(
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -64,18 +54,6 @@ async function fetchDoc() {
     privateKey,
     ["https://www.googleapis.com/auth/documents.readonly"]
   );
-
-  // Explicitly authorize and catch auth errors
-  try {
-    await auth.authorize();
-    console.log("[fetch] JWT auth successful");
-  } catch (authErr) {
-    console.error("[fetch] JWT auth FAILED:", authErr.message);
-    throw authErr;
-  }
-
-  const docId = (process.env.GOOGLE_DOC_ID || "").trim();
-  console.log("[fetch] Doc ID length:", docId.length, "chars:", JSON.stringify(docId));
 
   const docs = google.docs({ version: "v1", auth });
   const res = await docs.documents.get({ documentId: docId });
@@ -169,8 +147,8 @@ TEXT:\n` + docText;
   }
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 8096,
+    model: "claude-opus-4-0-20250514",
+    max_tokens: 16000,
     messages: [{ role: "user", content: prompt }],
   });
 
