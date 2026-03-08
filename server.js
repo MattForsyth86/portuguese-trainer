@@ -169,12 +169,14 @@ TEXT:\n` + docText;
   }
 
   const response = await client.messages.create({
-    model: "claude-opus-4-6",
-    max_tokens: 4096,
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 8096,
     messages: [{ role: "user", content: prompt }],
   });
 
   const responseText = response.content[0]?.text || "";
+  console.log(`[parse] ${section} response length: ${responseText.length}, stop_reason: ${response.stop_reason}`);
+  if (responseText.length < 100) console.log(`[parse] ${section} short response:`, responseText);
   return recoverJSON(responseText);
 }
 
