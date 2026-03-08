@@ -74,8 +74,11 @@ async function fetchDoc() {
     throw authErr;
   }
 
+  const docId = (process.env.GOOGLE_DOC_ID || "").trim();
+  console.log("[fetch] Doc ID length:", docId.length, "chars:", JSON.stringify(docId));
+
   const docs = google.docs({ version: "v1", auth });
-  const res = await docs.documents.get({ documentId: process.env.GOOGLE_DOC_ID });
+  const res = await docs.documents.get({ documentId: docId });
 
   let text = "";
   const content = res.data.body?.content || [];
