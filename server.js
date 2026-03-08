@@ -147,7 +147,7 @@ TEXT:\n` + docText;
   }
 
   const response = await client.messages.create({
-    model: "claude-opus-4-0-20250514",
+    model: "claude-opus-4-0",
     max_tokens: 16000,
     messages: [{ role: "user", content: prompt }],
   });
