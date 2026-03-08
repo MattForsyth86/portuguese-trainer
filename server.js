@@ -48,10 +48,16 @@ async function fetchDoc() {
   console.log("[fetch] Doc ID:", process.env.GOOGLE_DOC_ID);
   console.log("[fetch] Key starts with:", process.env.GOOGLE_PRIVATE_KEY?.substring(0, 30));
 
+  // Handle both literal \n strings and already-real newlines
+  let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+  if (privateKey.includes("\\n")) {
+    privateKey = privateKey.replace(/\\n/g, "\n");
+  }
+
   const auth = new google.auth.JWT(
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     null,
-    process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    privateKey,
     ["https://www.googleapis.com/auth/documents.readonly"]
   );
 
