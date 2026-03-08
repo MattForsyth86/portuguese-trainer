@@ -1,0 +1,13 @@
+{
+  "name": "portuguese-trainer",
+  "version": "1.0.0",
+  "description": "Portuguese language trainer synced with tutor's Google Doc",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@netlify/blobs": "^10.7.0",
+    "googleapis": "^144.0.0"
+  }
+}

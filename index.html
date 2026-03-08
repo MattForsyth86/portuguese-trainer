@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c1222">
+<title>Português Trainer</title>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Portugu%C3%AAs%20Trainer&quot;,&quot;short_name&quot;:&quot;PT%20Trainer&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230c1222&quot;,&quot;theme_color&quot;:&quot;%230c1222&quot;}">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0c1222;--surface:#151d30;--card:#1a2540;--card-hover:#1f2d4a;
+  --border:#243049;--text:#e8ecf4;--text2:#8899b4;--text3:#5a6a86;
+  --green:#22c55e;--green-dim:#166534/* reserved */;--green-bg:rgba(34,197,94,0.12);
+  --red:#ef4444;--red-bg:rgba(239,68,68,0.12);
+  --amber:#f59e0b;--amber-bg:rgba(245,158,11,0.12);
+  --blue:#3b82f6/* reserved */;
+  --radius:12px;--radius-sm:8px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+#root{height:100%;display:flex;flex-direction:column}
+input{font-family:'DM Mono',monospace;font-size:18px;background:var(--surface);border:2px solid var(--border);color:var(--text);padding:12px 16px;border-radius:var(--radius-sm);width:100%;outline:none;transition:border-color 0.2s}
+input:focus{border-color:var(--green)}
+input::placeholder{color:var(--text3)}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none;transition:all 0.15s}
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;width:100%;position:relative}
+.header{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.logo{font-family:'Instrument Serif',serif;font-size:28px;letter-spacing:-0.5px}
+.stats-badge{display:flex;gap:12px;font-size:13px;color:var(--text2);font-weight:500}
+.stats-badge span{display:flex;align-items:center;gap:4px}
+.score-bar{display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 20px;flex-shrink:0;font-size:13px;font-weight:600}
+.score-bar .streak{color:var(--amber)}
+.score-bar .correct{color:var(--green)}
+.score-bar .pct{color:var(--text2)}
+.sync-bar{display:flex;align-items:center;justify-content:space-between;margin:0 16px 10px;padding:10px 14px;background:var(--surface);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);flex-shrink:0}
+.sync-bar .sync-info{display:flex;align-items:center;gap:6px}
+.sync-btn{background:var(--green);color:#000;font-weight:700;font-size:12px;padding:6px 14px;border-radius:6px;display:flex;align-items:center;gap:5px}
+.sync-btn:hover{background:#16a34a}
+.sync-btn:disabled{opacity:0.5}
+.sync-btn .dot{width:6px;height:6px;background:#000;border-radius:50%;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 12px;flex-shrink:0}
+.mode-btn{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;text-align:center;font-size:12px;font-weight:600;color:var(--text2);transition:all 0.15s;line-height:1.3}
+.mode-btn:hover{background:var(--card-hover);color:var(--text)}
+.mode-btn.active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.drill-area{flex:1;overflow-y:auto;padding:0 16px 24px;display:flex;flex-direction:column;gap:16px}
+.drill-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px 20px;animation:fadeIn 0.2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.drill-card .tense{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:12px}
+.drill-card .word{font-family:'Instrument Serif',serif;font-size:36px;line-height:1.1;margin-bottom:4px}
+.drill-card .hint{font-size:14px;color:var(--text2);margin-bottom:20px}
+.drill-card .hint em{color:var(--green);font-style:normal;font-weight:600}
+.input-row{display:flex;gap:8px}
+.go-btn{background:var(--green);color:#000;font-weight:700;font-size:16px;padding:12px 20px;border-radius:var(--radius-sm)}
+.go-btn:hover{background:#16a34a}
+.feedback{padding:14px 16px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;margin-top:8px;animation:fadeIn 0.2s}
+.feedback.correct{background:var(--green-bg);color:var(--green)}
+.feedback.wrong{background:var(--red-bg);color:var(--red)}
+.feedback.close{background:var(--amber-bg);color:var(--amber)}
+.next-btn{background:var(--surface);color:var(--text);font-weight:600;font-size:14px;padding:10px 20px;border-radius:var(--radius-sm);margin-top:8px;width:100%}
+.next-btn:hover{background:var(--card-hover)}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.opt-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-weight:600;font-size:15px;padding:14px;border-radius:var(--radius-sm);transition:all 0.15s}
+.opt-btn:hover{border-color:var(--text3)}
+.opt-btn.selected-correct{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.opt-btn.selected-wrong{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.opt-btn.show-correct{border-color:var(--green);color:var(--green)}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.filter-pill{background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;transition:all 0.15s}
+.filter-pill:hover{color:var(--text)}
+.filter-pill.active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.word-bank{display:flex;flex-wrap:wrap;gap:8px;min-height:48px;padding:12px;background:var(--surface);border-radius:var(--radius-sm);margin-bottom:8px}
+.word-chip{background:var(--card);border:1px solid var(--border);color:var(--text);font-weight:500;font-size:15px;padding:8px 14px;border-radius:6px;cursor:pointer;transition:all 0.1s;user-select:none}
+.word-chip:hover{border-color:var(--text3)}
+.word-chip.placed{opacity:0.3;pointer-events:none}
+.sentence-build{display:flex;flex-wrap:wrap;gap:8px;min-height:48px;padding:12px;background:var(--bg);border:2px dashed var(--border);border-radius:var(--radius-sm);margin-bottom:8px}
+.sentence-build .word-chip{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.footer{padding:8px 16px 16px;text-align:center;font-size:11px;color:var(--text3);flex-shrink:0}
+.footer a{color:var(--text3)}
+.settings-icon{background:none;color:var(--text3);font-size:18px;padding:4px}
+.settings-icon:hover{color:var(--text)}
+.settings-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin:0 16px 12px}
+.settings-panel label{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--text2);padding:8px 0;border-bottom:1px solid var(--border)}
+.settings-panel label:last-child{border-bottom:none}
+select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;font-family:'DM Sans',sans-serif}
+@media(min-width:768px){.app{border-left:1px solid var(--border);border-right:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useEffect, useMemo, useCallback, useRef} = React;
+
+// ============================================================
+// DATA
+// ============================================================
+const VERBS = [{"infinitive":"ser","english":"to be (permanent)","type":"irregular","conjugations":{"presente":{"eu":"sou","você":"é","ele/ela":"é","nós":"somos","eles/elas":"são"},"pretérito perfeito":{"eu":"fui","você":"foi","ele/ela":"foi","nós":"fomos","eles/elas":"foram"},"pretérito imperfeito":{"eu":"era","você":"era","ele/ela":"era","nós":"éramos","eles/elas":"eram"}}},{"infinitive":"estar","english":"to be (temporary)","type":"irregular","conjugations":{"presente":{"eu":"estou","você":"está","ele/ela":"está","nós":"estamos","eles/elas":"estão"},"pretérito perfeito":{"eu":"estive","você":"esteve","ele/ela":"esteve","nós":"estivemos","eles/elas":"estiveram"},"pretérito imperfeito":{"eu":"estava","você":"estava","ele/ela":"estava","nós":"estávamos","eles/elas":"estavam"}}},{"infinitive":"ter","english":"to have","type":"irregular","conjugations":{"presente":{"eu":"tenho","você":"tem","ele/ela":"tem","nós":"temos","eles/elas":"têm"},"pretérito perfeito":{"eu":"tive","você":"teve","ele/ela":"teve","nós":"tivemos","eles/elas":"tiveram"},"pretérito imperfeito":{"eu":"tinha","você":"tinha","ele/ela":"tinha","nós":"tínhamos","eles/elas":"tinham"}}},{"infinitive":"ir","english":"to go","type":"irregular","conjugations":{"presente":{"eu":"vou","você":"vai","ele/ela":"vai","nós":"vamos","eles/elas":"vão"},"pretérito perfeito":{"eu":"fui","você":"foi","ele/ela":"foi","nós":"fomos","eles/elas":"foram"}}},{"infinitive":"fazer","english":"to do / to make","type":"irregular","conjugations":{"presente":{"eu":"faço","você":"faz","ele/ela":"faz","nós":"fazemos","eles/elas":"fazem"},"pretérito perfeito":{"eu":"fiz","você":"fez","ele/ela":"fez","nós":"fizemos","eles/elas":"fizeram"}}},{"infinitive":"ver","english":"to see","type":"irregular","conjugations":{"presente":{"eu":"vejo","você":"vê","ele/ela":"vê","nós":"vemos","eles/elas":"veem"},"pretérito perfeito":{"eu":"vi","você":"viu","ele/ela":"viu","nós":"vimos","eles/elas":"viram"}}},{"infinitive":"vir","english":"to come","type":"irregular","conjugations":{"presente":{"eu":"venho","você":"vem","ele/ela":"vem","nós":"vimos","eles/elas":"vêm"},"pretérito perfeito":{"eu":"vim","você":"veio","ele/ela":"veio","nós":"viemos","eles/elas":"vieram"}}},{"infinitive":"poder","english":"to be able to","type":"irregular","conjugations":{"presente":{"eu":"posso","você":"pode","ele/ela":"pode","nós":"podemos","eles/elas":"podem"},"pretérito perfeito":{"eu":"pude","você":"pôde","ele/ela":"pôde","nós":"pudemos","eles/elas":"puderam"}}},{"infinitive":"conseguir","english":"to manage / to achieve","type":"irregular","conjugations":{"presente":{"eu":"consigo","você":"consegue","ele/ela":"consegue","nós":"conseguimos","eles/elas":"conseguem"},"pretérito perfeito":{"eu":"consegui","você":"conseguiu","ele/ela":"conseguiu","nós":"conseguimos","eles/elas":"conseguiram"}}},{"infinitive":"saber","english":"to know (facts)","type":"irregular","conjugations":{"presente":{"eu":"sei","você":"sabe","ele/ela":"sabe","nós":"sabemos","eles/elas":"sabem"},"pretérito perfeito":{"eu":"soube","você":"soube","ele/ela":"soube","nós":"soubemos","eles/elas":"souberam"}}},{"infinitive":"conhecer","english":"to know (people/places)","type":"irregular","conjugations":{"presente":{"eu":"conheço","você":"conhece","ele/ela":"conhece","nós":"conhecemos","eles/elas":"conhecem"},"pretérito perfeito":{"eu":"conheci","você":"conheceu","ele/ela":"conheceu","nós":"conhecemos","eles/elas":"conheceram"}}},{"infinitive":"querer","english":"to want","type":"irregular","conjugations":{"presente":{"eu":"quero","você":"quer","ele/ela":"quer","nós":"queremos","eles/elas":"querem"},"pretérito perfeito":{"eu":"quis","você":"quis","ele/ela":"quis","nós":"quisemos","eles/elas":"quiseram"}}},{"infinitive":"trazer","english":"to bring","type":"irregular","conjugations":{"presente":{"eu":"trago","você":"traz","ele/ela":"traz","nós":"trazemos","eles/elas":"trazem"},"pretérito perfeito":{"eu":"trouxe","você":"trouxe","ele/ela":"trouxe","nós":"trouxemos","eles/elas":"trouxeram"}}},{"infinitive":"dar","english":"to give","type":"irregular","conjugations":{"presente":{"eu":"dou","você":"dá","ele/ela":"dá","nós":"damos","eles/elas":"dão"},"pretérito perfeito":{"eu":"dei","você":"deu","ele/ela":"deu","nós":"demos","eles/elas":"deram"}}},{"infinitive":"dizer","english":"to say / to tell","type":"irregular","conjugations":{"presente":{"eu":"digo","você":"diz","ele/ela":"diz","nós":"dizemos","eles/elas":"dizem"},"pretérito perfeito":{"eu":"disse","você":"disse","ele/ela":"disse","nós":"dissemos","eles/elas":"disseram"}}},{"infinitive":"pôr","english":"to put","type":"irregular","conjugations":{"presente":{"eu":"ponho","você":"põe","ele/ela":"põe","nós":"pomos","eles/elas":"põem"},"pretérito perfeito":{"eu":"pus","você":"pôs","ele/ela":"pôs","nós":"pusemos","eles/elas":"puseram"}}},{"infinitive":"sair","english":"to leave / to go out","type":"irregular","conjugations":{"presente":{"eu":"saio","você":"sai","ele/ela":"sai","nós":"saímos","eles/elas":"saem"},"pretérito perfeito":{"eu":"saí","você":"saiu","ele/ela":"saiu","nós":"saímos","eles/elas":"saíram"}}},{"infinitive":"pedir","english":"to ask for / to order","type":"irregular","conjugations":{"presente":{"eu":"peço","você":"pede","ele/ela":"pede","nós":"pedimos","eles/elas":"pedem"},"pretérito perfeito":{"eu":"pedi","você":"pediu","ele/ela":"pediu","nós":"pedimos","eles/elas":"pediram"}}},{"infinitive":"ler","english":"to read","type":"irregular","conjugations":{"presente":{"eu":"leio","você":"lê","ele/ela":"lê","nós":"lemos","eles/elas":"leem"},"pretérito perfeito":{"eu":"li","você":"leu","ele/ela":"leu","nós":"lemos","eles/elas":"leram"}}},{"infinitive":"ouvir","english":"to hear","type":"irregular","conjugations":{"presente":{"eu":"ouço","você":"ouve","ele/ela":"ouve","nós":"ouvimos","eles/elas":"ouvem"},"pretérito perfeito":{"eu":"ouvi","você":"ouviu","ele/ela":"ouviu","nós":"ouvimos","eles/elas":"ouviram"}}},{"infinitive":"dormir","english":"to sleep","type":"irregular","conjugations":{"presente":{"eu":"durmo","você":"dorme","ele/ela":"dorme","nós":"dormimos","eles/elas":"dormem"},"pretérito perfeito":{"eu":"dormi","você":"dormiu","ele/ela":"dormiu","nós":"dormimos","eles/elas":"dormiram"}}},{"infinitive":"perder","english":"to lose","type":"irregular","conjugations":{"presente":{"eu":"perco","você":"perde","ele/ela":"perde","nós":"perdemos","eles/elas":"perdem"},"pretérito perfeito":{"eu":"perdi","você":"perdeu","ele/ela":"perdeu","nós":"perdemos","eles/elas":"perderam"}}},{"infinitive":"esquecer","english":"to forget","type":"irregular","conjugations":{"presente":{"eu":"esqueço","você":"esquece","ele/ela":"esquece","nós":"esquecemos","eles/elas":"esquecem"},"pretérito perfeito":{"eu":"esqueci","você":"esqueceu","ele/ela":"esqueceu","nós":"esquecemos","eles/elas":"esqueceram"}}},{"infinitive":"rir","english":"to laugh","type":"irregular","conjugations":{"presente":{"eu":"rio","você":"ri","ele/ela":"ri","nós":"rimos","eles/elas":"riem"},"pretérito perfeito":{"eu":"ri","você":"riu","ele/ela":"riu","nós":"rimos","eles/elas":"riram"}}},{"infinitive":"descer","english":"to go down","type":"irregular","conjugations":{"presente":{"eu":"desço","você":"desce","ele/ela":"desce","nós":"descemos","eles/elas":"descem"},"pretérito perfeito":{"eu":"desci","você":"desceu","ele/ela":"desceu","nós":"descemos","eles/elas":"desceram"}}},{"infinitive":"escrever","english":"to write","type":"irregular","conjugations":{"presente":{"eu":"escrevo","você":"escreve","ele/ela":"escreve","nós":"escrevemos","eles/elas":"escrevem"},"pretérito perfeito":{"eu":"escrevi","você":"escreveu","ele/ela":"escreveu","nós":"escrevemos","eles/elas":"escreveram"}}},{"infinitive":"falar","english":"to speak","type":"regular_ar","conjugations":{"presente":{"eu":"falo","você":"fala","ele/ela":"fala","nós":"falamos","eles/elas":"falam"},"pretérito perfeito":{"eu":"falei","você":"falou","ele/ela":"falou","nós":"falamos","eles/elas":"falaram"}}},{"infinitive":"voltar","english":"to return","type":"regular_ar","conjugations":{"presente":{"eu":"volto","você":"volta","ele/ela":"volta","nós":"voltamos","eles/elas":"voltam"},"pretérito perfeito":{"eu":"voltei","você":"voltou","ele/ela":"voltou","nós":"voltamos","eles/elas":"voltaram"}}},{"infinitive":"procurar","english":"to search","type":"regular_ar","conjugations":{"presente":{"eu":"procuro","você":"procura","ele/ela":"procura","nós":"procuramos","eles/elas":"procuram"},"pretérito perfeito":{"eu":"procurei","você":"procurou","ele/ela":"procurou","nós":"procuramos","eles/elas":"procuraram"}}},{"infinitive":"ficar","english":"to stay / to become","type":"regular_ar","conjugations":{"presente":{"eu":"fico","você":"fica","ele/ela":"fica","nós":"ficamos","eles/elas":"ficam"},"pretérito perfeito":{"eu":"fiquei","você":"ficou","ele/ela":"ficou","nós":"ficamos","eles/elas":"ficaram"}}},{"infinitive":"deixar","english":"to let / to allow","type":"regular_ar","conjugations":{"presente":{"eu":"deixo","você":"deixa","ele/ela":"deixa","nós":"deixamos","eles/elas":"deixam"},"pretérito perfeito":{"eu":"deixei","você":"deixou","ele/ela":"deixou","nós":"deixamos","eles/elas":"deixaram"}}},{"infinitive":"precisar","english":"to need","type":"regular_ar","conjugations":{"presente":{"eu":"preciso","você":"precisa","ele/ela":"precisa","nós":"precisamos","eles/elas":"precisam"},"pretérito perfeito":{"eu":"precisei","você":"precisou","ele/ela":"precisou","nós":"precisamos","eles/elas":"precisaram"}}},{"infinitive":"mostrar","english":"to show","type":"regular_ar","conjugations":{"presente":{"eu":"mostro","você":"mostra","ele/ela":"mostra","nós":"mostramos","eles/elas":"mostram"},"pretérito perfeito":{"eu":"mostrei","você":"mostrou","ele/ela":"mostrou","nós":"mostramos","eles/elas":"mostraram"}}},{"infinitive":"chegar","english":"to arrive","type":"regular_ar","conjugations":{"presente":{"eu":"chego","você":"chega","ele/ela":"chega","nós":"chegamos","eles/elas":"chegam"},"pretérito perfeito":{"eu":"cheguei","você":"chegou","ele/ela":"chegou","nós":"chegamos","eles/elas":"chegaram"}}},{"infinitive":"funcionar","english":"to work (function)","type":"regular_ar","conjugations":{"presente":{"eu":"funciono","você":"funciona","ele/ela":"funciona","nós":"funcionamos","eles/elas":"funcionam"},"pretérito perfeito":{"eu":"funcionei","você":"funcionou","ele/ela":"funcionou","nós":"funcionamos","eles/elas":"funcionaram"}}},{"infinitive":"quebrar","english":"to break","type":"regular_ar","conjugations":{"presente":{"eu":"quebro","você":"quebra","ele/ela":"quebra","nós":"quebramos","eles/elas":"quebram"},"pretérito perfeito":{"eu":"quebrei","você":"quebrou","ele/ela":"quebrou","nós":"quebramos","eles/elas":"quebraram"}}},{"infinitive":"demorar","english":"to take time","type":"regular_ar","conjugations":{"presente":{"eu":"demoro","você":"demora","ele/ela":"demora","nós":"demoramos","eles/elas":"demoram"},"pretérito perfeito":{"eu":"demorei","você":"demorou","ele/ela":"demorou","nós":"demoramos","eles/elas":"demoraram"}}},{"infinitive":"passar","english":"to pass","type":"regular_ar","conjugations":{"presente":{"eu":"passo","você":"passa","ele/ela":"passa","nós":"passamos","eles/elas":"passam"},"pretérito perfeito":{"eu":"passei","você":"passou","ele/ela":"passou","nós":"passamos","eles/elas":"passaram"}}},{"infinitive":"chamar","english":"to call / to invite","type":"regular_ar","conjugations":{"presente":{"eu":"chamo","você":"chama","ele/ela":"chama","nós":"chamamos","eles/elas":"chamam"},"pretérito perfeito":{"eu":"chamei","você":"chamou","ele/ela":"chamou","nós":"chamamos","eles/elas":"chamaram"}}},{"infinitive":"pensar","english":"to think","type":"regular_ar","conjugations":{"presente":{"eu":"penso","você":"pensa","ele/ela":"pensa","nós":"pensamos","eles/elas":"pensam"},"pretérito perfeito":{"eu":"pensei","você":"pensou","ele/ela":"pensou","nós":"pensamos","eles/elas":"pensaram"}}},{"infinitive":"usar","english":"to use","type":"regular_ar","conjugations":{"presente":{"eu":"uso","você":"usa","ele/ela":"usa","nós":"usamos","eles/elas":"usam"},"pretérito perfeito":{"eu":"usei","você":"usou","ele/ela":"usou","nós":"usamos","eles/elas":"usaram"}}},{"infinitive":"parar","english":"to stop","type":"regular_ar","conjugations":{"presente":{"eu":"paro","você":"para","ele/ela":"para","nós":"paramos","eles/elas":"param"},"pretérito perfeito":{"eu":"parei","você":"parou","ele/ela":"parou","nós":"paramos","eles/elas":"pararam"}}},{"infinitive":"lembrar","english":"to remember","type":"regular_ar","conjugations":{"presente":{"eu":"lembro","você":"lembra","ele/ela":"lembra","nós":"lembramos","eles/elas":"lembram"},"pretérito perfeito":{"eu":"lembrei","você":"lembrou","ele/ela":"lembrou","nós":"lembramos","eles/elas":"lembraram"}}},{"infinitive":"acreditar","english":"to believe","type":"regular_ar","conjugations":{"presente":{"eu":"acredito","você":"acredita","ele/ela":"acredita","nós":"acreditamos","eles/elas":"acreditam"},"pretérito perfeito":{"eu":"acreditei","você":"acreditou","ele/ela":"acreditou","nós":"acreditamos","eles/elas":"acreditaram"}}},{"infinitive":"ganhar","english":"to win","type":"regular_ar","conjugations":{"presente":{"eu":"ganho","você":"ganha","ele/ela":"ganha","nós":"ganhamos","eles/elas":"ganham"},"pretérito perfeito":{"eu":"ganhei","você":"ganhou","ele/ela":"ganhou","nós":"ganhamos","eles/elas":"ganharam"}}},{"infinitive":"tomar","english":"to take (showers)","type":"regular_ar","conjugations":{"presente":{"eu":"tomo","você":"toma","ele/ela":"toma","nós":"tomamos","eles/elas":"tomam"},"pretérito perfeito":{"eu":"tomei","você":"tomou","ele/ela":"tomou","nós":"tomamos","eles/elas":"tomaram"}}},{"infinitive":"trabalhar","english":"to work","type":"regular_ar","conjugations":{"presente":{"eu":"trabalho","você":"trabalha","ele/ela":"trabalha","nós":"trabalhamos","eles/elas":"trabalham"},"pretérito perfeito":{"eu":"trabalhei","você":"trabalhou","ele/ela":"trabalhou","nós":"trabalhamos","eles/elas":"trabalharam"}}},{"infinitive":"achar","english":"to find / to think","type":"regular_ar","conjugations":{"presente":{"eu":"acho","você":"acha","ele/ela":"acha","nós":"achamos","eles/elas":"acham"},"pretérito perfeito":{"eu":"achei","você":"achou","ele/ela":"achou","nós":"achamos","eles/elas":"acharam"}}},{"infinitive":"comprar","english":"to buy","type":"regular_ar","conjugations":{"presente":{"eu":"compro","você":"compra","ele/ela":"compra","nós":"compramos","eles/elas":"compram"},"pretérito perfeito":{"eu":"comprei","você":"comprou","ele/ela":"comprou","nós":"compramos","eles/elas":"compraram"}}},{"infinitive":"cuidar","english":"to take care","type":"regular_ar","conjugations":{"presente":{"eu":"cuido","você":"cuida","ele/ela":"cuida","nós":"cuidamos","eles/elas":"cuidam"},"pretérito perfeito":{"eu":"cuidei","você":"cuidou","ele/ela":"cuidou","nós":"cuidamos","eles/elas":"cuidaram"}}},{"infinitive":"olhar","english":"to look","type":"regular_ar","conjugations":{"presente":{"eu":"olho","você":"olha","ele/ela":"olha","nós":"olhamos","eles/elas":"olham"},"pretérito perfeito":{"eu":"olhei","você":"olhou","ele/ela":"olhou","nós":"olhamos","eles/elas":"olharam"}}},{"infinitive":"pesquisar","english":"to research","type":"regular_ar","conjugations":{"presente":{"eu":"pesquiso","você":"pesquisa","ele/ela":"pesquisa","nós":"pesquisamos","eles/elas":"pesquisam"},"pretérito perfeito":{"eu":"pesquisei","você":"pesquisou","ele/ela":"pesquisou","nós":"pesquisamos","eles/elas":"pesquisaram"}}},{"infinitive":"colocar","english":"to put","type":"regular_ar","conjugations":{"presente":{"eu":"coloco","você":"coloca","ele/ela":"coloca","nós":"colocamos","eles/elas":"colocam"},"pretérito perfeito":{"eu":"colocei","você":"colocou","ele/ela":"colocou","nós":"colocamos","eles/elas":"colocaram"}}},{"infinitive":"consertar","english":"to fix","type":"regular_ar","conjugations":{"presente":{"eu":"conserto","você":"conserta","ele/ela":"conserta","nós":"consertamos","eles/elas":"consertam"},"pretérito perfeito":{"eu":"consertei","você":"consertou","ele/ela":"consertou","nós":"consertamos","eles/elas":"consertaram"}}},{"infinitive":"levar","english":"to carry","type":"regular_ar","conjugations":{"presente":{"eu":"levo","você":"leva","ele/ela":"leva","nós":"levamos","eles/elas":"levam"},"pretérito perfeito":{"eu":"levei","você":"levou","ele/ela":"levou","nós":"levamos","eles/elas":"levaram"}}},{"infinitive":"segurar","english":"to hold","type":"regular_ar","conjugations":{"presente":{"eu":"seguro","você":"segura","ele/ela":"segura","nós":"seguramos","eles/elas":"seguram"},"pretérito perfeito":{"eu":"segurei","você":"segurou","ele/ela":"segurou","nós":"seguramos","eles/elas":"seguraram"}}},{"infinitive":"mudar","english":"to change","type":"regular_ar","conjugations":{"presente":{"eu":"mudo","você":"muda","ele/ela":"muda","nós":"mudamos","eles/elas":"mudam"},"pretérito perfeito":{"eu":"mudei","você":"mudou","ele/ela":"mudou","nós":"mudamos","eles/elas":"mudaram"}}},{"infinitive":"levantar","english":"to lift","type":"regular_ar","conjugations":{"presente":{"eu":"levanto","você":"levanta","ele/ela":"levanta","nós":"levantamos","eles/elas":"levantam"},"pretérito perfeito":{"eu":"levantei","você":"levantou","ele/ela":"levantou","nós":"levantamos","eles/elas":"levantaram"}}},{"infinitive":"puxar","english":"to pull","type":"regular_ar","conjugations":{"presente":{"eu":"puxo","você":"puxa","ele/ela":"puxa","nós":"puxamos","eles/elas":"puxam"},"pretérito perfeito":{"eu":"puxei","você":"puxou","ele/ela":"puxou","nós":"puxamos","eles/elas":"puxaram"}}},{"infinitive":"empurrar","english":"to push","type":"regular_ar","conjugations":{"presente":{"eu":"empurro","você":"empurra","ele/ela":"empurra","nós":"empurramos","eles/elas":"empurram"},"pretérito perfeito":{"eu":"empurrei","você":"empurrou","ele/ela":"empurrou","nós":"empurramos","eles/elas":"empurraram"}}},{"infinitive":"abaixar","english":"to lower","type":"regular_ar","conjugations":{"presente":{"eu":"abaixo","você":"abaixa","ele/ela":"abaixa","nós":"abaixamos","eles/elas":"abaixam"},"pretérito perfeito":{"eu":"abaixei","você":"abaixou","ele/ela":"abaixou","nós":"abaixamos","eles/elas":"abaixaram"}}},{"infinitive":"fechar","english":"to close","type":"regular_ar","conjugations":{"presente":{"eu":"fecho","você":"fecha","ele/ela":"fecha","nós":"fechamos","eles/elas":"fecham"},"pretérito perfeito":{"eu":"fechei","você":"fechou","ele/ela":"fechou","nós":"fechamos","eles/elas":"fecharam"}}},{"infinitive":"pegar","english":"to grab","type":"regular_ar","conjugations":{"presente":{"eu":"pego","você":"pega","ele/ela":"pega","nós":"pegamos","eles/elas":"pegam"},"pretérito perfeito":{"eu":"peguei","você":"pegou","ele/ela":"pegou","nós":"pegamos","eles/elas":"pegaram"}}},{"infinitive":"ligar","english":"to turn on","type":"regular_ar","conjugations":{"presente":{"eu":"ligo","você":"liga","ele/ela":"liga","nós":"ligamos","eles/elas":"ligam"},"pretérito perfeito":{"eu":"liguei","você":"ligou","ele/ela":"ligou","nós":"ligamos","eles/elas":"ligaram"}}},{"infinitive":"desligar","english":"to turn off","type":"regular_ar","conjugations":{"presente":{"eu":"desligo","você":"desliga","ele/ela":"desliga","nós":"desligamos","eles/elas":"desligam"},"pretérito perfeito":{"eu":"desliguei","você":"desligou","ele/ela":"desligou","nós":"desligamos","eles/elas":"desligaram"}}},{"infinitive":"curtir","english":"to enjoy","type":"regular_ir","conjugations":{"presente":{"eu":"curto","você":"curte","ele/ela":"curte","nós":"curtimos","eles/elas":"curtem"},"pretérito perfeito":{"eu":"curti","você":"curtiu","ele/ela":"curtiu","nós":"curtimos","eles/elas":"curtiram"}}},{"infinitive":"aproveitar","english":"to make the most of","type":"regular_ar","conjugations":{"presente":{"eu":"aproveito","você":"aproveita","ele/ela":"aproveita","nós":"aproveitamos","eles/elas":"aproveitam"},"pretérito perfeito":{"eu":"aproveitei","você":"aproveitou","ele/ela":"aproveitou","nós":"aproveitamos","eles/elas":"aproveitaram"}}},{"infinitive":"receber","english":"to receive","type":"regular_er","conjugations":{"presente":{"eu":"recebo","você":"recebe","ele/ela":"recebe","nós":"recebemos","eles/elas":"recebem"},"pretérito perfeito":{"eu":"recebi","você":"recebeu","ele/ela":"recebeu","nós":"recebemos","eles/elas":"receberam"}}},{"infinitive":"comer","english":"to eat","type":"regular_er","conjugations":{"presente":{"eu":"como","você":"come","ele/ela":"come","nós":"comemos","eles/elas":"comem"},"pretérito perfeito":{"eu":"comi","você":"comeu","ele/ela":"comeu","nós":"comemos","eles/elas":"comeram"}}},{"infinitive":"beber","english":"to drink","type":"regular_er","conjugations":{"presente":{"eu":"bebo","você":"bebe","ele/ela":"bebe","nós":"bebemos","eles/elas":"bebem"},"pretérito perfeito":{"eu":"bebi","você":"bebeu","ele/ela":"bebeu","nós":"bebemos","eles/elas":"beberam"}}},{"infinitive":"entender","english":"to understand","type":"regular_er","conjugations":{"presente":{"eu":"entendo","você":"entende","ele/ela":"entende","nós":"entendemos","eles/elas":"entendem"},"pretérito perfeito":{"eu":"entendi","você":"entendeu","ele/ela":"entendeu","nós":"entendemos","eles/elas":"entenderam"}}},{"infinitive":"mexer","english":"to move","type":"regular_er","conjugations":{"presente":{"eu":"mexo","você":"mexe","ele/ela":"mexe","nós":"mexemos","eles/elas":"mexem"},"pretérito perfeito":{"eu":"mexi","você":"mexeu","ele/ela":"mexeu","nós":"mexemos","eles/elas":"mexeram"}}},{"infinitive":"devolver","english":"to return (sth)","type":"regular_er","conjugations":{"presente":{"eu":"devolvo","você":"devolve","ele/ela":"devolve","nós":"devolvemos","eles/elas":"devolvem"},"pretérito perfeito":{"eu":"devolvi","você":"devolveu","ele/ela":"devolveu","nós":"devolvemos","eles/elas":"devolveram"}}},{"infinitive":"escolher","english":"to choose","type":"regular_er","conjugations":{"presente":{"eu":"escolho","você":"escolhe","ele/ela":"escolhe","nós":"escolhemos","eles/elas":"escolhem"},"pretérito perfeito":{"eu":"escolhi","você":"escolheu","ele/ela":"escolheu","nós":"escolhemos","eles/elas":"escolheram"}}},{"infinitive":"acontecer","english":"to happen","type":"regular_er","conjugations":{"presente":{"eu":"aconteço","você":"acontece","ele/ela":"acontece","nós":"acontecemos","eles/elas":"acontecem"},"pretérito perfeito":{"eu":"aconteci","você":"aconteceu","ele/ela":"aconteceu","nós":"acontecemos","eles/elas":"aconteceram"}}},{"infinitive":"nascer","english":"to be born","type":"regular_er","conjugations":{"presente":{"eu":"nasço","você":"nasce","ele/ela":"nasce","nós":"nascemos","eles/elas":"nascem"},"pretérito perfeito":{"eu":"nasci","você":"nasceu","ele/ela":"nasceu","nós":"nascemos","eles/elas":"nasceram"}}},{"infinitive":"morrer","english":"to die","type":"regular_er","conjugations":{"presente":{"eu":"morro","você":"morre","ele/ela":"morre","nós":"morremos","eles/elas":"morrem"},"pretérito perfeito":{"eu":"morri","você":"morreu","ele/ela":"morreu","nós":"morremos","eles/elas":"morreram"}}},{"infinitive":"viver","english":"to live","type":"regular_er","conjugations":{"presente":{"eu":"vivo","você":"vive","ele/ela":"vive","nós":"vivemos","eles/elas":"vivem"},"pretérito perfeito":{"eu":"vivi","você":"viveu","ele/ela":"viveu","nós":"vivemos","eles/elas":"viveram"}}},{"infinitive":"abrir","english":"to open","type":"regular_ir","conjugations":{"presente":{"eu":"abro","você":"abre","ele/ela":"abre","nós":"abrimos","eles/elas":"abrem"},"pretérito perfeito":{"eu":"abri","você":"abriu","ele/ela":"abriu","nós":"abrimos","eles/elas":"abriram"}}},{"infinitive":"subir","english":"to go up","type":"regular_ir","conjugations":{"presente":{"eu":"subo","você":"sobe","ele/ela":"sobe","nós":"subimos","eles/elas":"sobem"},"pretérito perfeito":{"eu":"subi","você":"subiu","ele/ela":"subiu","nós":"subimos","eles/elas":"subiram"}}},{"infinitive":"existir","english":"to exist","type":"regular_ir","conjugations":{"presente":{"eu":"existo","você":"existe","ele/ela":"existe","nós":"existimos","eles/elas":"existem"},"pretérito perfeito":{"eu":"existi","você":"existiu","ele/ela":"existiu","nós":"existimos","eles/elas":"existiram"}}},{"infinitive":"decidir","english":"to decide","type":"regular_ir","conjugations":{"presente":{"eu":"decido","você":"decide","ele/ela":"decide","nós":"decidimos","eles/elas":"decidem"},"pretérito perfeito":{"eu":"decidi","você":"decidiu","ele/ela":"decidiu","nós":"decidimos","eles/elas":"decidiram"}}},{"infinitive":"partir","english":"to depart","type":"regular_ir","conjugations":{"presente":{"eu":"parto","você":"parte","ele/ela":"parte","nós":"partimos","eles/elas":"partem"},"pretérito perfeito":{"eu":"parti","você":"partiu","ele/ela":"partiu","nós":"partimos","eles/elas":"partiram"}}}];
+
+const VOCABULARY = [
+{"portuguese":"bem-vindo","english":"welcome","category":"essentials","gender":null},
+{"portuguese":"obrigado","english":"thank you (m)","category":"essentials","gender":"o"},
+{"portuguese":"obrigada","english":"thank you (f)","category":"essentials","gender":"a"},
+{"portuguese":"por favor","english":"please","category":"essentials","gender":null},
+{"portuguese":"com licença","english":"excuse me","category":"essentials","gender":null},
+{"portuguese":"desculpa","english":"sorry","category":"essentials","gender":null},
+{"portuguese":"tchau","english":"bye","category":"essentials","gender":null},
+{"portuguese":"bom dia","english":"good morning","category":"greetings","gender":null},
+{"portuguese":"boa tarde","english":"good afternoon","category":"greetings","gender":null},
+{"portuguese":"boa noite","english":"good evening","category":"greetings","gender":null},
+{"portuguese":"tudo bem","english":"how are you","category":"greetings","gender":null},
+{"portuguese":"prazer","english":"nice to meet you","category":"greetings","gender":"o"},
+{"portuguese":"segunda-feira","english":"Monday","category":"days","gender":"a"},
+{"portuguese":"terça-feira","english":"Tuesday","category":"days","gender":"a"},
+{"portuguese":"quarta-feira","english":"Wednesday","category":"days","gender":"a"},
+{"portuguese":"quinta-feira","english":"Thursday","category":"days","gender":"a"},
+{"portuguese":"sexta-feira","english":"Friday","category":"days","gender":"a"},
+{"portuguese":"sábado","english":"Saturday","category":"days","gender":"o"},
+{"portuguese":"domingo","english":"Sunday","category":"days","gender":"o"},
+{"portuguese":"zero","english":"0","category":"numbers","gender":null},{"portuguese":"um","english":"1","category":"numbers","gender":null},{"portuguese":"dois","english":"2","category":"numbers","gender":null},{"portuguese":"três","english":"3","category":"numbers","gender":null},{"portuguese":"quatro","english":"4","category":"numbers","gender":null},{"portuguese":"cinco","english":"5","category":"numbers","gender":null},{"portuguese":"seis","english":"6","category":"numbers","gender":null},{"portuguese":"sete","english":"7","category":"numbers","gender":null},{"portuguese":"oito","english":"8","category":"numbers","gender":null},{"portuguese":"nove","english":"9","category":"numbers","gender":null},{"portuguese":"dez","english":"10","category":"numbers","gender":null},{"portuguese":"vinte","english":"20","category":"numbers","gender":null},{"portuguese":"cem","english":"100","category":"numbers","gender":null},{"portuguese":"mil","english":"1000","category":"numbers","gender":null},
+{"portuguese":"vermelho","english":"red","category":"colors","gender":"o"},{"portuguese":"azul","english":"blue","category":"colors","gender":null},{"portuguese":"verde","english":"green","category":"colors","gender":null},{"portuguese":"amarelo","english":"yellow","category":"colors","gender":"o"},{"portuguese":"branco","english":"white","category":"colors","gender":"o"},{"portuguese":"preto","english":"black","category":"colors","gender":"o"},
+{"portuguese":"mãe","english":"mother","category":"family","gender":"a"},{"portuguese":"pai","english":"father","category":"family","gender":"o"},{"portuguese":"irmão","english":"brother","category":"family","gender":"o"},{"portuguese":"irmã","english":"sister","category":"family","gender":"a"},{"portuguese":"filho","english":"son","category":"family","gender":"o"},{"portuguese":"filha","english":"daughter","category":"family","gender":"a"},{"portuguese":"namorado","english":"boyfriend","category":"family","gender":"o"},{"portuguese":"namorada","english":"girlfriend","category":"family","gender":"a"},{"portuguese":"amigo","english":"friend (m)","category":"family","gender":"o"},{"portuguese":"amiga","english":"friend (f)","category":"family","gender":"a"},
+{"portuguese":"cabeça","english":"head","category":"body","gender":"a"},{"portuguese":"olho","english":"eye","category":"body","gender":"o"},{"portuguese":"boca","english":"mouth","category":"body","gender":"a"},{"portuguese":"mão","english":"hand","category":"body","gender":"a"},{"portuguese":"braço","english":"arm","category":"body","gender":"o"},{"portuguese":"perna","english":"leg","category":"body","gender":"a"},{"portuguese":"pé","english":"foot","category":"body","gender":"o"},{"portuguese":"coração","english":"heart","category":"body","gender":"o"},
+{"portuguese":"cachorro","english":"dog","category":"animals","gender":"o"},{"portuguese":"gato","english":"cat","category":"animals","gender":"o"},{"portuguese":"pássaro","english":"bird","category":"animals","gender":"o"},{"portuguese":"peixe","english":"fish","category":"animals","gender":"o"},{"portuguese":"tubarão","english":"shark","category":"animals","gender":"o"},
+{"portuguese":"calor","english":"heat","category":"weather","gender":"o"},{"portuguese":"frio","english":"cold","category":"weather","gender":"o"},{"portuguese":"chuva","english":"rain","category":"weather","gender":"a"},{"portuguese":"sol","english":"sun","category":"weather","gender":"o"},{"portuguese":"vento","english":"wind","category":"weather","gender":"o"},{"portuguese":"tempestade","english":"storm","category":"weather","gender":"a"},
+{"portuguese":"camiseta","english":"t-shirt","category":"clothing","gender":"a"},{"portuguese":"calça","english":"pants","category":"clothing","gender":"a"},{"portuguese":"casaco","english":"jacket","category":"clothing","gender":"o"},{"portuguese":"sapato","english":"shoe","category":"clothing","gender":"o"},{"portuguese":"jaqueta","english":"jacket","category":"clothing","gender":"a"},
+{"portuguese":"médico","english":"doctor","category":"professions","gender":"o"},{"portuguese":"professor","english":"teacher","category":"professions","gender":"o"},{"portuguese":"engenheiro","english":"engineer","category":"professions","gender":"o"},{"portuguese":"garçom","english":"waiter","category":"professions","gender":"o"},
+{"portuguese":"casa","english":"house","category":"casa","gender":"a"},{"portuguese":"quarto","english":"room","category":"casa","gender":"o"},{"portuguese":"cama","english":"bed","category":"casa","gender":"a"},{"portuguese":"mesa","english":"table","category":"casa","gender":"a"},{"portuguese":"cadeira","english":"chair","category":"casa","gender":"a"},{"portuguese":"cozinha","english":"kitchen","category":"casa","gender":"a"},{"portuguese":"banheiro","english":"bathroom","category":"casa","gender":"o"},{"portuguese":"porta","english":"door","category":"casa","gender":"a"},{"portuguese":"janela","english":"window","category":"casa","gender":"a"},{"portuguese":"geladeira","english":"fridge","category":"casa","gender":"a"},{"portuguese":"armário","english":"cabinet","category":"casa","gender":"o"},{"portuguese":"chave","english":"key","category":"casa","gender":"a"},
+{"portuguese":"pão","english":"bread","category":"food","gender":"o"},{"portuguese":"água","english":"water","category":"food","gender":"a"},{"portuguese":"café","english":"coffee","category":"food","gender":"o"},{"portuguese":"arroz","english":"rice","category":"food","gender":"o"},{"portuguese":"feijão","english":"beans","category":"food","gender":"o"},{"portuguese":"frango","english":"chicken","category":"food","gender":"o"},{"portuguese":"carne","english":"meat","category":"food","gender":"a"},{"portuguese":"leite","english":"milk","category":"food","gender":"o"},{"portuguese":"comida","english":"food","category":"food","gender":"a"},{"portuguese":"maçã","english":"apple","category":"food","gender":"a"},
+{"portuguese":"praia","english":"beach","category":"nature","gender":"a"},{"portuguese":"mar","english":"sea","category":"nature","gender":"o"},{"portuguese":"rio","english":"river","category":"nature","gender":"o"},{"portuguese":"árvore","english":"tree","category":"nature","gender":"a"},{"portuguese":"céu","english":"sky","category":"nature","gender":"o"},
+{"portuguese":"rua","english":"street","category":"city","gender":"a"},{"portuguese":"carro","english":"car","category":"city","gender":"o"},{"portuguese":"escola","english":"school","category":"city","gender":"a"},{"portuguese":"hospital","english":"hospital","category":"city","gender":"o"},{"portuguese":"restaurante","english":"restaurant","category":"city","gender":"o"},{"portuguese":"loja","english":"store","category":"city","gender":"a"},{"portuguese":"padaria","english":"bakery","category":"city","gender":"a"},{"portuguese":"farmácia","english":"pharmacy","category":"city","gender":"a"},
+{"portuguese":"dia","english":"day","category":"time","gender":"o"},{"portuguese":"noite","english":"night","category":"time","gender":"a"},{"portuguese":"manhã","english":"morning","category":"time","gender":"a"},{"portuguese":"tarde","english":"afternoon","category":"time","gender":"a"},{"portuguese":"hora","english":"hour","category":"time","gender":"a"},{"portuguese":"semana","english":"week","category":"time","gender":"a"},{"portuguese":"ontem","english":"yesterday","category":"time","gender":null},{"portuguese":"hoje","english":"today","category":"time","gender":null},{"portuguese":"amanhã","english":"tomorrow","category":"time","gender":null},
+{"portuguese":"feliz","english":"happy","category":"feelings","gender":null},{"portuguese":"triste","english":"sad","category":"feelings","gender":null},{"portuguese":"cansado","english":"tired","category":"feelings","gender":"o"},{"portuguese":"com fome","english":"hungry","category":"feelings","gender":null},{"portuguese":"com raiva","english":"angry","category":"feelings","gender":null},{"portuguese":"com medo","english":"scared","category":"feelings","gender":null},{"portuguese":"saudade","english":"longing","category":"feelings","gender":"a"},
+{"portuguese":"mas","english":"but","category":"connectors","gender":null},{"portuguese":"ou","english":"or","category":"connectors","gender":null},{"portuguese":"porque","english":"because","category":"connectors","gender":null},{"portuguese":"então","english":"then / so","category":"connectors","gender":null},{"portuguese":"sempre","english":"always","category":"connectors","gender":null},{"portuguese":"nunca","english":"never","category":"connectors","gender":null},{"portuguese":"também","english":"also","category":"connectors","gender":null},{"portuguese":"depois","english":"after","category":"connectors","gender":null},{"portuguese":"antes","english":"before","category":"connectors","gender":null},{"portuguese":"agora","english":"now","category":"connectors","gender":null},{"portuguese":"muito","english":"very / a lot","category":"connectors","gender":null},{"portuguese":"aqui","english":"here","category":"connectors","gender":null},
+{"portuguese":"grande","english":"big","category":"adjectives","gender":null},{"portuguese":"pequeno","english":"small","category":"adjectives","gender":"o"},{"portuguese":"bonito","english":"beautiful","category":"adjectives","gender":"o"},{"portuguese":"bom","english":"good","category":"adjectives","gender":"o"},{"portuguese":"ruim","english":"bad","category":"adjectives","gender":null},{"portuguese":"fácil","english":"easy","category":"adjectives","gender":null},{"portuguese":"difícil","english":"difficult","category":"adjectives","gender":null},{"portuguese":"caro","english":"expensive","category":"adjectives","gender":"o"},{"portuguese":"forte","english":"strong","category":"adjectives","gender":null},{"portuguese":"errado","english":"wrong","category":"adjectives","gender":"o"},{"portuguese":"certo","english":"correct","category":"adjectives","gender":"o"},{"portuguese":"pronto","english":"ready","category":"adjectives","gender":"o"},{"portuguese":"junto","english":"together","category":"adjectives","gender":"o"},{"portuguese":"sozinho","english":"alone","category":"adjectives","gender":"o"},
+{"portuguese":"mensagem","english":"message","category":"essentials","gender":"a"},{"portuguese":"notícia","english":"news","category":"essentials","gender":"a"},{"portuguese":"carteira","english":"wallet","category":"essentials","gender":"a"},{"portuguese":"ingresso","english":"ticket","category":"essentials","gender":"o"},{"portuguese":"presente","english":"gift","category":"essentials","gender":"o"},{"portuguese":"festa","english":"party","category":"essentials","gender":"a"},{"portuguese":"viagem","english":"trip","category":"essentials","gender":"a"},{"portuguese":"coisa","english":"thing","category":"essentials","gender":"a"},{"portuguese":"lugar","english":"place","category":"essentials","gender":"o"},{"portuguese":"problema","english":"problem","category":"essentials","gender":"o"},{"portuguese":"ferramenta","english":"tool","category":"essentials","gender":"a"},{"portuguese":"telefone","english":"phone","category":"essentials","gender":"o"},{"portuguese":"filme","english":"movie","category":"essentials","gender":"o"},{"portuguese":"livro","english":"book","category":"essentials","gender":"o"},{"portuguese":"trabalho","english":"work / job","category":"essentials","gender":"o"},{"portuguese":"aula","english":"class","category":"essentials","gender":"a"},{"portuguese":"dinheiro","english":"money","category":"essentials","gender":"o"},
+{"portuguese":"lama","english":"mud","category":"rig","gender":"a"},{"portuguese":"martelo","english":"hammer","category":"rig","gender":"o"},{"portuguese":"cabo","english":"cable","category":"rig","gender":"o"},{"portuguese":"tubo","english":"pipe","category":"rig","gender":"o"},
+];
+
+const RIG_VOCAB = [
+{"portuguese":"casco","english":"hull","category":"ship","gender":"o"},{"portuguese":"proa","english":"bow","category":"ship","gender":"a"},{"portuguese":"popa","english":"stern","category":"ship","gender":"a"},{"portuguese":"convés","english":"deck","category":"ship","gender":"o"},{"portuguese":"escotilha","english":"hatch","category":"ship","gender":"a"},{"portuguese":"âncora","english":"anchor","category":"ship","gender":"a"},{"portuguese":"porão","english":"cargo hold","category":"ship","gender":"o"},
+{"portuguese":"perfurar","english":"to drill","category":"drilling","gender":null},{"portuguese":"poço","english":"well","category":"drilling","gender":"o"},{"portuguese":"broca","english":"drill bit","category":"drilling","gender":"a"},{"portuguese":"pressão","english":"pressure","category":"drilling","gender":"a"},{"portuguese":"revestimento","english":"casing","category":"drilling","gender":"o"},{"portuguese":"coluna","english":"drill string","category":"drilling","gender":"a"},{"portuguese":"fluido","english":"fluid","category":"drilling","gender":"o"},
+{"portuguese":"válvula","english":"valve","category":"operations","gender":"a"},{"portuguese":"bomba","english":"pump","category":"operations","gender":"a"},{"portuguese":"mangueira","english":"hose","category":"operations","gender":"a"},{"portuguese":"operação","english":"operation","category":"operations","gender":"a"},{"portuguese":"manutenção","english":"maintenance","category":"operations","gender":"a"},{"portuguese":"turno","english":"shift","category":"operations","gender":"o"},
+{"portuguese":"motor","english":"engine","category":"machines","gender":"o"},{"portuguese":"gerador","english":"generator","category":"machines","gender":"o"},{"portuguese":"guindaste","english":"crane","category":"machines","gender":"o"},{"portuguese":"máquina","english":"machine","category":"machines","gender":"a"},
+{"portuguese":"capitão","english":"captain","category":"crew","gender":"o"},{"portuguese":"tripulação","english":"crew","category":"crew","gender":"a"},{"portuguese":"marinheiro","english":"sailor","category":"crew","gender":"o"},{"portuguese":"chefe","english":"boss","category":"crew","gender":"o"},
+{"portuguese":"bote salva-vidas","english":"lifeboat","category":"safety","gender":"o"},{"portuguese":"colete salva-vidas","english":"life jacket","category":"safety","gender":"o"},{"portuguese":"extintor","english":"fire extinguisher","category":"safety","gender":"o"},
+{"portuguese":"eslinga","english":"sling","category":"rig","gender":"a"},{"portuguese":"gancho","english":"hook","category":"rig","gender":"o"},
+];
+
+const SER_ESTAR = [
+{"phrase":"Eu ___ muito feliz hoje.","answer":"estou","reason":"Temporary emotion","hint":"I am very happy today."},
+{"phrase":"Eles ___ amigos há muito tempo.","answer":"são","reason":"Lasting relationship","hint":"They have been friends for a long time."},
+{"phrase":"Você ___ cansado?","answer":"está","reason":"Temporary state","hint":"Are you tired?"},
+{"phrase":"Nós ___ em casa agora.","answer":"estamos","reason":"Location","hint":"We are at home now."},
+{"phrase":"Meu irmão ___ estudante.","answer":"é","reason":"Profession/identity","hint":"My brother is a student."},
+{"phrase":"Como ___ o tempo lá fora?","answer":"está","reason":"Temporary condition","hint":"How is the weather outside?"},
+{"phrase":"Esta comida ___ deliciosa!","answer":"está","reason":"Temporary impression","hint":"This food is delicious!"},
+{"phrase":"Eu ___ de São Paulo.","answer":"sou","reason":"Origin","hint":"I am from São Paulo."},
+{"phrase":"Ela ___ bonita hoje.","answer":"está","reason":"Temporary - looks today","hint":"She looks beautiful today."},
+{"phrase":"Ela ___ bonita.","answer":"é","reason":"Permanent trait","hint":"She is beautiful (always)."},
+{"phrase":"Eu ___ supervisor de barco.","answer":"sou","reason":"Profession","hint":"I am a ship supervisor."},
+{"phrase":"O céu ___ azul.","answer":"é","reason":"Essential trait","hint":"The sky is blue."},
+{"phrase":"Ele ___ doente.","answer":"está","reason":"Health condition","hint":"He is sick."},
+{"phrase":"Hoje ___ segunda-feira.","answer":"é","reason":"Day/time","hint":"Today is Monday."},
+{"phrase":"Você ___ pronto para sair?","answer":"está","reason":"Temporary readiness","hint":"Are you ready to go?"},
+{"phrase":"A festa ___ muito divertida.","answer":"está","reason":"Temporary assessment","hint":"The party is very fun."},
+{"phrase":"Minha mãe ___ professora.","answer":"é","reason":"Profession","hint":"My mother is a teacher."},
+{"phrase":"Eu ___ no supermercado agora.","answer":"estou","reason":"Location","hint":"I am at the supermarket now."},
+{"phrase":"Este bolo ___ delicioso!","answer":"é","reason":"Inherent quality","hint":"This cake is delicious!"},
+{"phrase":"Aquele restaurante ___ sempre cheio.","answer":"está","reason":"Temporary state","hint":"That restaurant is always full."},
+];
+
+const PREPOSITIONS = [
+{"phrase":"Eu moro ___ Brasil.","answer":"no","hint":"I live in Brazil.","rule":"em + o = no"},
+{"phrase":"Eu gosto ___ café.","answer":"de","hint":"I like coffee.","rule":"gostar + de"},
+{"phrase":"Vamos ___ praia amanhã?","answer":"à","hint":"Shall we go to the beach?","rule":"a + a = à"},
+{"phrase":"A aula começa ___ oito horas.","answer":"às","hint":"Class starts at 8.","rule":"a + as = às"},
+{"phrase":"Eu venho ___ casa.","answer":"de","hint":"I come from home.","rule":"vir + de"},
+{"phrase":"Ele trabalha ___ navio.","answer":"no","hint":"He works on the ship.","rule":"em + o = no"},
+{"phrase":"Eu preciso falar ___ você.","answer":"com","hint":"I need to talk to you.","rule":"falar + com"},
+{"phrase":"Isso é ___ você.","answer":"para","hint":"This is for you.","rule":"para = for"},
+{"phrase":"Eu vou ___ restaurante.","answer":"ao","hint":"I go to the restaurant.","rule":"a + o = ao"},
+{"phrase":"Ele saiu ___ trabalho cedo.","answer":"do","hint":"He left work early.","rule":"de + o = do"},
+{"phrase":"Eu estou ___ casa.","answer":"em","hint":"I am at home.","rule":"em = at/in"},
+{"phrase":"A chave está ___ cima da mesa.","answer":"em","hint":"The key is on the table.","rule":"em cima de = on top of"},
+{"phrase":"Eu vou sair ___ jantar.","answer":"para","hint":"I am going out for dinner.","rule":"para = for"},
+{"phrase":"Eu vim ___ carro.","answer":"de","hint":"I came by car.","rule":"de = by (transport)"},
+{"phrase":"Nós passamos ___ esse lugar.","answer":"por","hint":"We pass by this place.","rule":"por = by/through"},
+];
+
+const PHRASES = [
+{"phrase":"Bom ___, tudo bem?","answer":"dia","hint":"Good morning, all good?","category":"greetings"},
+{"phrase":"Eu ___ um café por favor.","answer":"quero","hint":"I want a coffee please.","category":"daily"},
+{"phrase":"Com ___, por favor.","answer":"licença","hint":"Excuse me, please.","category":"greetings"},
+{"phrase":"Eu falo português ___.","answer":"mal","hint":"I speak Portuguese badly.","category":"daily"},
+{"phrase":"A ___ precisa de manutenção.","answer":"bomba","hint":"The pump needs maintenance.","category":"rig"},
+{"phrase":"Ontem eu ___ muito.","answer":"trabalhei","hint":"Yesterday I worked a lot.","category":"past tense"},
+{"phrase":"___ custa isso?","answer":"quanto","hint":"How much does this cost?","category":"questions"},
+{"phrase":"Eu ___ procurando a ferramenta.","answer":"estou","hint":"I am looking for the tool.","category":"rig"},
+{"phrase":"Você ___ me ajudar?","answer":"pode","hint":"Can you help me?","category":"questions"},
+{"phrase":"Eu ___ que sim.","answer":"acho","hint":"I think so.","category":"daily"},
+{"phrase":"Ele ___ consertando a máquina.","answer":"está","hint":"He is fixing the machine.","category":"rig"},
+{"phrase":"Vai ___ muito tempo.","answer":"demorar","hint":"It will take a long time.","category":"daily"},
+{"phrase":"Deixa eu te ___ como fazer.","answer":"mostrar","hint":"Let me show you how to do it.","category":"daily"},
+{"phrase":"Eu não estou ___ nada.","answer":"ouvindo","hint":"I am not hearing anything.","category":"daily"},
+{"phrase":"Você ___ o que aconteceu?","answer":"lembra","hint":"Do you remember what happened?","category":"questions"},
+];
+
+const SENTENCES = [
+{"english":"I go to work in Brazil.","words":["Eu","vou","trabalhar","no","Brasil"],"category":"daily"},
+{"english":"She is looking for the tool.","words":["Ela","está","procurando","a","ferramenta"],"category":"rig"},
+{"english":"They stopped pumping mud.","words":["Eles","pararam","de","bombear","lama"],"category":"rig"},
+{"english":"I need you to do this now.","words":["Eu","preciso","que","você","faça","isso","agora"],"category":"daily"},
+{"english":"We are going to order more material.","words":["Nós","vamos","pedir","mais","material"],"category":"rig"},
+{"english":"Can you move this to the other side?","words":["Você","pode","mexer","isso","para","o","outro","lado"],"category":"rig"},
+{"english":"I forgot to ask him about that.","words":["Eu","esqueci","de","perguntar","para","ele","sobre","aquilo"],"category":"daily"},
+{"english":"The generator is not working.","words":["O","gerador","não","está","funcionando"],"category":"rig"},
+{"english":"I was tired after the trip.","words":["Eu","estava","cansado","depois","da","viagem"],"category":"past"},
+{"english":"They will receive the package tomorrow.","words":["Eles","vão","receber","a","encomenda","amanhã"],"category":"daily"},
+{"english":"I drink my coffee every morning.","words":["Eu","bebo","meu","café","todas","as","manhãs"],"category":"daily"},
+{"english":"Lower the pipe slowly.","words":["Abaixa","o","tubo","devagar"],"category":"rig"},
+{"english":"This is not good, we need to change.","words":["Isso","não","está","bom","precisamos","mudar"],"category":"rig"},
+{"english":"Let me see that.","words":["Deixa","eu","ver","isso"],"category":"daily"},
+{"english":"I lost my wallet on the street.","words":["Eu","perdi","minha","carteira","na","rua"],"category":"daily"},
+];
+
+const RIG_SCENARIOS = [
+{"situation":"A tool is broken on the rig floor","prompt":"Tell the crew the tool broke","answer":"A ferramenta quebrou","hint":"quebrar = to break","vocabulary":["ferramenta","quebrou"]},
+{"situation":"You need someone to hold a cable","prompt":"Ask them to hold the cable","answer":"Segura o cabo por favor","hint":"segurar = to hold","vocabulary":["segura","cabo"]},
+{"situation":"The pump is not working","prompt":"Report the pump issue","answer":"A bomba não está funcionando","hint":"funcionar = to work","vocabulary":["bomba","funcionando"]},
+{"situation":"You need to lower equipment","prompt":"Tell them to lower it slowly","answer":"Abaixa devagar","hint":"abaixar = to lower","vocabulary":["abaixa","devagar"]},
+{"situation":"Shift change is happening","prompt":"Say you need to change your shift","answer":"Eu preciso trocar o meu turno","hint":"trocar = to change","vocabulary":["trocar","turno"]},
+{"situation":"Someone left tools in the wrong place","prompt":"Tell them they put it in the wrong spot","answer":"Você colocou no lugar errado","hint":"colocar = to put","vocabulary":["colocou","lugar","errado"]},
+{"situation":"You need to go up to get something","prompt":"Say you need to go up there","answer":"Eu preciso subir lá para pegar uma coisa","hint":"subir = to go up","vocabulary":["subir","pegar","coisa"]},
+{"situation":"Equipment repair will take hours","prompt":"Say the repair will take a few hours","answer":"Vai demorar algumas horas para consertar","hint":"demorar = to take time","vocabulary":["demorar","consertar"]},
+{"situation":"You need the crane operator","prompt":"Call for the crane operator","answer":"Chama o operador do guindaste","hint":"chamar = to call","vocabulary":["chama","operador","guindaste"]},
+{"situation":"Machine needs to be turned off","prompt":"Tell them to turn off the machine","answer":"Desliga a máquina","hint":"desligar = to turn off","vocabulary":["desliga","máquina"]},
+];
+
+// ============================================================
+// HELPERS
+// ============================================================
+const shuffle = arr => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const normalize = s => s?.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+const exactMatch = (a, b) => a?.toLowerCase().trim() === b?.toLowerCase().trim();
+const closeMatch = (a, b) => normalize(a) === normalize(b);
+
+const LS = {
+  get: (k,d) => { try { const v = localStorage.getItem("pt2-"+k); return v ? JSON.parse(v) : d; } catch { return d; }},
+  set: (k,v) => { try { localStorage.setItem("pt2-"+k, JSON.stringify(v)); } catch {} },
+};
+
+// ============================================================
+// MERGE LOGIC
+// ============================================================
+function mergeData(base, synced, keyFn) {
+  if (!synced?.length) return base;
+  const seen = new Set(base.map(keyFn));
+  const newItems = synced.filter(i => !seen.has(keyFn(i)));
+  return [...base, ...newItems];
+}
+
+function useTrainerData() {
+  const syncedData = LS.get("synced", null);
+
+  const verbs = useMemo(() => mergeData(VERBS, syncedData?.verbs, v=>v.infinitive), [syncedData]);
+  const vocabulary = useMemo(() => mergeData(VOCABULARY, syncedData?.vocabulary, v=>v.portuguese), [syncedData]);
+  const rigVocab = useMemo(() => mergeData(RIG_VOCAB, syncedData?.rig_vocab, v=>v.portuguese), [syncedData]);
+  const serEstar = useMemo(() => mergeData(SER_ESTAR, syncedData?.ser_estar, v=>v.phrase), [syncedData]);
+  const prepositions = useMemo(() => mergeData(PREPOSITIONS, syncedData?.prepositions, v=>v.phrase), [syncedData]);
+  const phrases = useMemo(() => mergeData(PHRASES, syncedData?.phrases, v=>v.phrase), [syncedData]);
+  const sentences = useMemo(() => mergeData(SENTENCES, syncedData?.sentences, v=>v.english), [syncedData]);
+  const rigScenarios = useMemo(() => mergeData(RIG_SCENARIOS, syncedData?.rig_scenarios, v=>v.situation), [syncedData]);
+  const allVocab = useMemo(() => [...vocabulary, ...rigVocab], [vocabulary, rigVocab]);
+  const genderWords = useMemo(() => allVocab.filter(v => v.gender), [allVocab]);
+
+  return { verbs, vocabulary, rigVocab, serEstar, prepositions, phrases, sentences, rigScenarios, allVocab, genderWords };
+}
+
+// ============================================================
+// COMPONENTS
+// ============================================================
+function Conjugar({ verbs, onRecord }) {
+  const [tense, setTense] = useState("presente");
+  const [vFilter, setVFilter] = useState("all");
+  const [q, setQ] = useState(null);
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState(null);
+  const inputRef = useRef(null);
+
+  const tenses = useMemo(() => {
+    const t = new Set();
+    verbs.forEach(v => Object.keys(v.conjugations).forEach(k => t.add(k)));
+    return [...t];
+  }, [verbs]);
+
+  const filtered = useMemo(() => {
+    let f = verbs.filter(v => v.conjugations[tense]);
+    if (vFilter !== "all") f = f.filter(v => v.type === vFilter);
+    return f;
+  }, [verbs, tense, vFilter]);
+
+  const next = useCallback(() => {
+    const verb = pick(filtered);
+    if (!verb) return;
+    const pronouns = Object.keys(verb.conjugations[tense]);
+    const pronoun = pick(pronouns);
+    setQ({ verb, pronoun, answer: verb.conjugations[tense][pronoun] });
+    setInput(""); setResult(null);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, [filtered, tense]);
+
+  useEffect(() => { if (filtered.length) next(); }, [tense, vFilter, filtered.length]);
+
+  const check = () => {
+    if (!q || !input.trim()) return;
+    if (exactMatch(input, q.answer)) {
+      setResult({ status: 'correct', answer: q.answer });
+      onRecord(true);
+    } else if (closeMatch(input, q.answer)) {
+      setResult({ status: 'close', answer: q.answer });
+    } else {
+      setResult({ status: 'wrong', answer: q.answer });
+      onRecord(false);
+    }
+  };
+
+  if (!q) return <div className="drill-card"><p style={{color:'var(--text2)'}}>No verbs for this filter</p></div>;
+
+  return <>
+    <div className="filter-row">
+      {tenses.map(t => <button key={t} className={`filter-pill ${tense===t?'active':''}`} onClick={()=>setTense(t)}>{t}</button>)}
+    </div>
+    <div className="filter-row">
+      {[["all","All"],["irregular","Irreg"],["regular_ar","-AR"],["regular_er","-ER"],["regular_ir","-IR"]].map(([k,l])=>
+        <button key={k} className={`filter-pill ${vFilter===k?'active':''}`} onClick={()=>setVFilter(k)}>{l}</button>
+      )}
+    </div>
+    <div className="drill-card">
+      <div className="tense">{tense}</div>
+      <div className="word">{q.verb.infinitive}</div>
+      <div className="hint">{q.verb.english} — <em>{q.pronoun}</em></div>
+      <div className="input-row">
+        <input ref={inputRef} value={input} onChange={e=>{setInput(e.target.value);if(result?.status==='close')setResult(null);}} onKeyDown={e=>{ if(e.key==='Enter'){ if(result&&result.status!=='close') next(); else check(); }}} placeholder="Type conjugation..." autoComplete="off" autoCapitalize="off" />
+        <button className="go-btn" onClick={()=>{ if(result&&result.status!=='close') next(); else check(); }}>{result&&result.status!=='close'?'→':'Go'}</button>
+      </div>
+      {result && <div className={`feedback ${result.status==='correct'?'correct':result.status==='close'?'close':'wrong'}`}>
+        {result.status==='correct' ? '✓ Correct!' : result.status==='close' ? `⚠ Close! Check accents → ${q.answer}` : `✗ ${q.answer}`}
+      </div>}
+    </div>
+  </>;
+}
+
+function VocabQuiz({ vocab, onRecord }) {
+  const [dir, setDir] = useState("pt-en");
+  const [q, setQ] = useState(null);
+  const [selected, setSelected] = useState(null);
+
+  const next = useCallback(() => {
+    const word = pick(vocab);
+    const others = shuffle(vocab.filter(w => w.portuguese !== word.portuguese)).slice(0,3);
+    const opts = shuffle([word, ...others]);
+    setQ({ word, opts });
+    setSelected(null);
+  }, [vocab]);
+
+  useEffect(() => { if(vocab.length) next(); }, [dir, vocab.length]);
+
+  if (!q) return null;
+  const prompt = dir === "pt-en" ? q.word.portuguese : q.word.english;
+  const getLabel = w => dir === "pt-en" ? w.english : w.portuguese;
+  const correct = w => w.portuguese === q.word.portuguese;
+
+  return <>
+    <div className="filter-row">
+      <button className={`filter-pill ${dir==='pt-en'?'active':''}`} onClick={()=>setDir('pt-en')}>PT → EN</button>
+      <button className={`filter-pill ${dir==='en-pt'?'active':''}`} onClick={()=>setDir('en-pt')}>EN → PT</button>
+    </div>
+    <div className="drill-card">
+      <div className="word">{prompt}</div>
+      {q.word.category && <div className="hint">{q.word.category}</div>}
+      <div className="options-grid">
+        {q.opts.map((w,i) => {
+          let cls = "opt-btn";
+          if (selected !== null) {
+            if (correct(w)) cls += " selected-correct";
+            else if (selected === i && !correct(w)) cls += " selected-wrong";
+          }
+          return <button key={i} className={cls} disabled={selected!==null} onClick={()=>{ setSelected(i); onRecord(correct(w)); }}>{getLabel(w)}</button>;
+        })}
+      </div>
+      {selected !== null && <button className="next-btn" onClick={next}>Next →</button>}
+    </div>
+  </>;
+}
+
+function GenderDrill({ words, onRecord }) {
+  const [q, setQ] = useState(null);
+  const [selected, setSelected] = useState(null);
+
+  const next = useCallback(() => {
+    setQ(pick(words));
+    setSelected(null);
+  }, [words]);
+
+  useEffect(() => { if(words.length) next(); }, [words.length]);
+
+  if (!q) return null;
+
+  return <div className="drill-card">
+    <div className="tense">ARTICLE</div>
+    <div className="word">{q.portuguese}</div>
+    <div className="hint">{q.english}</div>
+    <div className="options-grid">
+      {["o","a"].map(g => {
+        let cls = "opt-btn";
+        if (selected !== null) {
+          if (g === q.gender) cls += " selected-correct";
+          else if (selected === g && g !== q.gender) cls += " selected-wrong";
+        }
+        return <button key={g} className={cls} style={{fontSize:'24px',fontFamily:"'Instrument Serif',serif"}} disabled={selected!==null} onClick={()=>{ setSelected(g); onRecord(g===q.gender); }}>{g}</button>;
+      })}
+    </div>
+    {selected !== null && <button className="next-btn" onClick={next}>Next →</button>}
+  </div>;
+}
+
+function SerEstarDrill({ data, onRecord }) {
+  const [q, setQ] = useState(null);
+  const [selected, setSelected] = useState(null);
+
+  const next = useCallback(() => { setQ(pick(data)); setSelected(null); }, [data]);
+  useEffect(() => { if(data.length) next(); }, [data.length]);
+
+  if (!q) return null;
+
+  const serOpts = ["sou","é","somos","são"];
+  const estarOpts = ["estou","está","estamos","estão"];
+  const allOpts = [...new Set([q.answer, ...shuffle([...serOpts,...estarOpts])])].slice(0,4);
+  const opts = shuffle(allOpts.includes(q.answer) ? allOpts : [q.answer, ...allOpts.slice(0,3)]);
+
+  return <div className="drill-card">
+    <div className="tense">SER vs ESTAR</div>
+    <div className="word" style={{fontSize:'22px',fontFamily:"'DM Sans',sans-serif",fontWeight:600,lineHeight:1.5}}>{q.phrase}</div>
+    <div className="hint">{q.hint}</div>
+    <div className="options-grid">
+      {opts.map((o,i) => {
+        let cls = "opt-btn";
+        if (selected !== null) {
+          if (o === q.answer) cls += " selected-correct";
+          else if (selected === i && o !== q.answer) cls += " selected-wrong";
+        }
+        return <button key={i} className={cls} disabled={selected!==null} onClick={()=>{ setSelected(i); onRecord(o===q.answer); }}>{o}</button>;
+      })}
+    </div>
+    {selected !== null && <div className="feedback correct" style={{background:'var(--surface)'}}><span style={{color:'var(--text2)'}}>{q.reason}</span></div>}
+    {selected !== null && <button className="next-btn" onClick={next}>Next →</button>}
+  </div>;
+}
+
+function PrepDrill({ data, onRecord }) {
+  const [q, setQ] = useState(null);
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState(null);
+  const inputRef = useRef(null);
+
+  const next = useCallback(() => { setQ(pick(data)); setInput(""); setResult(null); setTimeout(()=>inputRef.current?.focus(),50); }, [data]);
+  useEffect(() => { if(data.length) next(); }, [data.length]);
+
+  const check = () => {
+    if (!q||!input.trim()) return;
+    if (exactMatch(input, q.answer)) {
+      setResult({ status: 'correct' }); onRecord(true);
+    } else if (closeMatch(input, q.answer)) {
+      setResult({ status: 'close' });
+    } else {
+      setResult({ status: 'wrong' }); onRecord(false);
+    }
+  };
+
+  if (!q) return null;
+
+  return <div className="drill-card">
+    <div className="tense">PREPOSITIONS</div>
+    <div className="word" style={{fontSize:'22px',fontFamily:"'DM Sans',sans-serif",fontWeight:600,lineHeight:1.5}}>{q.phrase}</div>
+    <div className="hint">{q.hint}</div>
+    <div className="input-row">
+      <input ref={inputRef} value={input} onChange={e=>{setInput(e.target.value);if(result?.status==='close')setResult(null);}} onKeyDown={e=>{if(e.key==='Enter'){if(result&&result.status!=='close')next();else check();}}} placeholder="Type preposition..." autoComplete="off" autoCapitalize="off"/>
+      <button className="go-btn" onClick={()=>{if(result&&result.status!=='close')next();else check();}}>{result&&result.status!=='close'?'→':'Go'}</button>
+    </div>
+    {result && <div className={`feedback ${result.status==='correct'?'correct':result.status==='close'?'close':'wrong'}`}>
+      {result.status==='correct' ? '✓ Correct!' : result.status==='close' ? `⚠ Close! Check accents → ${q.answer}` : `✗ ${q.answer}`}
+      <div style={{fontSize:'12px',marginTop:'4px',opacity:0.8}}>{q.rule}</div>
+    </div>}
+  </div>;
+}
+
+function FillGap({ data, onRecord }) {
+  const [q, setQ] = useState(null);
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState(null);
+  const inputRef = useRef(null);
+
+  const next = useCallback(() => { setQ(pick(data)); setInput(""); setResult(null); setTimeout(()=>inputRef.current?.focus(),50); }, [data]);
+  useEffect(() => { if(data.length) next(); }, [data.length]);
+
+  const check = () => {
+    if (!q||!input.trim()) return;
+    if (exactMatch(input, q.answer)) {
+      setResult({ status: 'correct' }); onRecord(true);
+    } else if (closeMatch(input, q.answer)) {
+      setResult({ status: 'close' });
+    } else {
+      setResult({ status: 'wrong' }); onRecord(false);
+    }
+  };
+
+  if (!q) return null;
+
+  return <div className="drill-card">
+    <div className="tense">PREENCHA</div>
+    <div className="word" style={{fontSize:'22px',fontFamily:"'DM Sans',sans-serif",fontWeight:600,lineHeight:1.5}}>{q.phrase}</div>
+    <div className="hint">{q.hint}</div>
+    <div className="input-row">
+      <input ref={inputRef} value={input} onChange={e=>{setInput(e.target.value);if(result?.status==='close')setResult(null);}} onKeyDown={e=>{if(e.key==='Enter'){if(result&&result.status!=='close')next();else check();}}} placeholder="Fill the gap..." autoComplete="off" autoCapitalize="off"/>
+      <button className="go-btn" onClick={()=>{if(result&&result.status!=='close')next();else check();}}>{result&&result.status!=='close'?'→':'Go'}</button>
+    </div>
+    {result && <div className={`feedback ${result.status==='correct'?'correct':result.status==='close'?'close':'wrong'}`}>
+      {result.status==='correct' ? '✓ Correct!' : result.status==='close' ? `⚠ Close! Check accents → ${q.answer}` : `✗ ${q.answer}`}
+    </div>}
+  </div>;
+}
+
+function SentenceBuilder({ data, onRecord }) {
+  const [q, setQ] = useState(null);
+  const [placed, setPlaced] = useState([]);
+  const [bank, setBank] = useState([]);
+  const [result, setResult] = useState(null);
+
+  const next = useCallback(() => {
+    const s = pick(data);
+    setQ(s);
+    setPlaced([]);
+    setBank(shuffle(s.words.map((w,i)=>({w,id:i}))));
+    setResult(null);
+  }, [data]);
+
+  useEffect(() => { if(data.length) next(); }, [data.length]);
+
+  const addWord = (item) => { setPlaced(p=>[...p,item]); };
+  const removeWord = (item) => { setPlaced(p=>p.filter(x=>x.id!==item.id)); };
+
+  const check = () => {
+    if (placed.length !== q.words.length) return;
+    const built = placed.map(p=>p.w).join(" ");
+    const expected = q.words.join(" ");
+    const correct = normalize(built) === normalize(expected);
+    setResult({ correct, expected });
+    onRecord(correct);
+  };
+
+  if (!q) return null;
+
+  const placedIds = new Set(placed.map(p=>p.id));
+
+  return <div className="drill-card">
+    <div className="tense">BUILD THE SENTENCE</div>
+    <div className="hint" style={{fontSize:'16px',marginBottom:'16px'}}>{q.english}</div>
+    <div className="sentence-build">
+      {placed.length === 0 && <span style={{color:'var(--text3)',fontSize:'14px'}}>Tap words below...</span>}
+      {placed.map((p,i)=><span key={i} className="word-chip" onClick={()=>removeWord(p)}>{p.w}</span>)}
+    </div>
+    <div className="word-bank">
+      {bank.map((item,i) => <button key={i} className={`word-chip ${placedIds.has(item.id)?'placed':''}`} onClick={()=>addWord(item)}>{item.w}</button>)}
+    </div>
+    {placed.length === q?.words.length && !result && <button className="go-btn" style={{width:'100%'}} onClick={check}>Check</button>}
+    {result && <div className={`feedback ${result.correct?'correct':'wrong'}`}>
+      {result.correct ? '✓ Correct!' : `✗ ${result.expected}`}
+    </div>}
+    {result && <button className="next-btn" onClick={next}>Next →</button>}
+  </div>;
+}
+
+function RigScenario({ data, onRecord }) {
+  const [q, setQ] = useState(null);
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState(null);
+  const [showHint, setShowHint] = useState(false);
+  const inputRef = useRef(null);
+
+  const next = useCallback(() => { setQ(pick(data)); setInput(""); setResult(null); setShowHint(false); setTimeout(()=>inputRef.current?.focus(),50); }, [data]);
+  useEffect(() => { if(data.length) next(); }, [data.length]);
+
+  const check = () => {
+    if (!q||!input.trim()) return;
+    const correct = normalize(input) === normalize(q.answer);
+    setResult({ correct });
+    onRecord(correct);
+  };
+
+  if (!q) return null;
+
+  return <div className="drill-card">
+    <div className="tense" style={{color:'var(--amber)'}}>RIG SCENARIO</div>
+    <div style={{fontSize:'14px',color:'var(--text2)',marginBottom:'8px',padding:'10px',background:'var(--surface)',borderRadius:'8px'}}>{q.situation}</div>
+    <div className="hint" style={{fontWeight:600,color:'var(--text)',marginBottom:'16px'}}>{q.prompt}</div>
+    {showHint && <div style={{fontSize:'13px',color:'var(--text3)',marginBottom:'8px'}}>{q.hint} | Key: {q.vocabulary?.join(", ")}</div>}
+    {!showHint && !result && <button style={{background:'none',color:'var(--text3)',fontSize:'12px',marginBottom:'8px',textDecoration:'underline'}} onClick={()=>setShowHint(true)}>Show hint</button>}
+    <div className="input-row">
+      <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){if(result)next();else check();}}} placeholder="Type in Portuguese..." autoComplete="off" autoCapitalize="off"/>
+      <button className="go-btn" onClick={()=>{if(result)next();else check();}}>{result?'→':'Go'}</button>
+    </div>
+    {result && <div className={`feedback ${result.correct?'correct':'wrong'}`}>{result.correct ? '✓ Correct!' : `✗ ${q.answer}`}</div>}
+  </div>;
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function App() {
+  const data = useTrainerData();
+  const [mode, setMode] = useState("conjugar");
+  const [stats, setStats] = useState(LS.get("stats",{correct:0,total:0,streak:0,best:0}));
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState(LS.get("syncMsg",""));
+  const [lastSync, setLastSync] = useState(LS.get("lastSync",""));
+  const [cloudLoaded, setCloudLoaded] = useState(false);
+
+  // Load from cloud on mount
+  useEffect(() => {
+    fetch("/.netlify/functions/data-store")
+      .then(r => r.json())
+      .then(cloud => {
+        if (cloud && Object.keys(cloud).length > 0) {
+          if (cloud.synced) LS.set("synced", cloud.synced);
+          if (cloud.stats) { LS.set("stats", cloud.stats); setStats(cloud.stats); }
+          if (cloud.lastSync) { LS.set("lastSync", cloud.lastSync); setLastSync(cloud.lastSync); }
+          if (cloud.syncMsg) { LS.set("syncMsg", cloud.syncMsg); setSyncMsg(cloud.syncMsg); }
+        }
+        setCloudLoaded(true);
+      })
+      .catch(() => setCloudLoaded(true));
+  }, []);
+
+  // Save stats to localStorage + debounced cloud save
+  const statsTimer = useRef(null);
+  useEffect(() => {
+    LS.set("stats", stats);
+    if (!cloudLoaded) return;
+    clearTimeout(statsTimer.current);
+    statsTimer.current = setTimeout(() => {
+      fetch("/.netlify/functions/data-store", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ action: "save-stats", stats })
+      }).catch(() => {});
+    }, 3000);
+  }, [stats, cloudLoaded]);
+
+  const record = (correct) => {
+    setStats(s => {
+      const streak = correct ? s.streak + 1 : 0;
+      return { correct: s.correct + (correct?1:0), total: s.total + 1, streak, best: Math.max(s.best, streak) };
+    });
+  };
+
+  const doSync = async () => {
+    setSyncing(true); setSyncMsg("Fetching doc...");
+    try {
+      const docRes = await fetch("/.netlify/functions/fetch-doc");
+      if (!docRes.ok) throw new Error("Doc fetch failed: " + docRes.status);
+      const docJson = await docRes.json();
+      const text = docJson.text;
+      if (!text) throw new Error("Empty doc");
+
+      const prevSynced = LS.get("synced", {});
+      const prevTotalVerbs = mergeData(VERBS, prevSynced?.verbs, v=>v.infinitive).length;
+      const prevTotalVocab = mergeData(VOCABULARY, prevSynced?.vocabulary, v=>v.portuguese).length;
+
+      const sections = ["verbs","vocabulary","exercises"];
+      const results = {};
+
+      // Run sequentially to avoid timeouts
+      for (const section of sections) {
+        setSyncMsg(`Parsing ${section}...`);
+        try {
+          const res = await fetch("/.netlify/functions/parse", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ text, section })
+          });
+          const responseText = await res.text();
+          try {
+            const json = JSON.parse(responseText);
+            results[section] = json.data;
+          } catch { results[section] = null; }
+        } catch { results[section] = null; }
+      }
+
+      // Merge new synced data with any previously synced data (accumulate across syncs)
+      const mergeSynced = (prev, curr, keyFn) => {
+        if (!curr?.length) return prev || [];
+        if (!prev?.length) return curr;
+        const seen = new Set(prev.map(keyFn));
+        return [...prev, ...curr.filter(i => !seen.has(keyFn(i)))];
+      };
+
+      const syncData = {
+        verbs: mergeSynced(prevSynced?.verbs, results.verbs, v=>v.infinitive),
+        vocabulary: mergeSynced(prevSynced?.vocabulary, results.vocabulary, v=>v.portuguese),
+        rig_vocab: mergeSynced(prevSynced?.rig_vocab, results.vocabulary?.filter(v => ["rig","ship","drilling","operations","machines","crew","safety","navigation"].includes(v.category)), v=>v.portuguese),
+        ser_estar: mergeSynced(prevSynced?.ser_estar, results.exercises?.ser_estar, v=>v.phrase),
+        prepositions: mergeSynced(prevSynced?.prepositions, results.exercises?.prepositions, v=>v.phrase),
+        phrases: mergeSynced(prevSynced?.phrases, results.exercises?.phrases, v=>v.phrase),
+        sentences: mergeSynced(prevSynced?.sentences, results.exercises?.sentences, v=>v.english),
+        rig_scenarios: mergeSynced(prevSynced?.rig_scenarios, results.exercises?.rig_scenarios, v=>v.situation),
+      };
+
+      LS.set("synced", syncData);
+      const now = new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      LS.set("lastSync", now);
+      setLastSync(now);
+
+      // Calculate actual new items vs what we had before this sync
+      const newTotalVerbs = mergeData(VERBS, syncData.verbs, v=>v.infinitive).length;
+      const newTotalVocab = mergeData(VOCABULARY, syncData.vocabulary, v=>v.portuguese).length;
+      const addedVerbs = newTotalVerbs - prevTotalVerbs;
+      const addedVocab = newTotalVocab - prevTotalVocab;
+
+      const msg = addedVerbs === 0 && addedVocab === 0
+        ? `✓ Up to date (${newTotalVerbs} verbs, ${newTotalVocab} words)`
+        : `✓ +${addedVerbs} verbs, +${addedVocab} words (${newTotalVerbs} total)`;
+      setSyncMsg(msg);
+      LS.set("syncMsg", msg);
+
+      // Save to cloud for cross-device access
+      fetch("/.netlify/functions/data-store", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ action: "save", synced: syncData, stats, lastSync: now, syncMsg: msg })
+      }).catch(() => {});
+    } catch (err) {
+      setSyncMsg("✗ " + err.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const totalVerbs = data.verbs.length;
+  const totalWords = data.vocabulary.length + data.rigVocab.length;
+
+  const modes = [
+    {id:"conjugar",label:"Conjugar"},
+    {id:"vocab",label:"Vocab"},
+    {id:"gender",label:"O vs A"},
+    {id:"serest",label:"Ser / Estar"},
+    {id:"prep",label:"Prep"},
+    {id:"preencha",label:"Preencha"},
+    {id:"build",label:"Sentence"},
+    {id:"rig",label:"Rig"},
+  ];
+
+  const pct = stats.total > 0 ? Math.round(stats.correct/stats.total*100) : 0;
+
+  return <div className="app">
+    <div className="header">
+      <div className="logo">Português.</div>
+      <div className="stats-badge">
+        <span>{totalVerbs} verbs</span>
+        <span>·</span>
+        <span>{totalWords} words</span>
+      </div>
+    </div>
+
+    <div className="score-bar">
+      <span className="streak">🔥 {stats.streak}</span>
+      <span className="correct">✓ {stats.correct}/{stats.total}</span>
+      <span className="pct">{pct}%</span>
+    </div>
+
+    <div className="sync-bar">
+      <div className="sync-info">
+        {syncing ? <><span className="dot" style={{display:'inline-block',width:6,height:6,borderRadius:'50%',background:'var(--green)',animation:'pulse 1s infinite'}}></span> {syncMsg}</> :
+         syncMsg ? syncMsg :
+         lastSync ? `Synced: ${lastSync}` : "Not synced yet"}
+      </div>
+      <button className="sync-btn" onClick={doSync} disabled={syncing}>
+        {syncing ? "..." : "Sync"}
+      </button>
+    </div>
+
+    <div className="mode-grid">
+      {modes.map(m => <button key={m.id} className={`mode-btn ${mode===m.id?'active':''}`} onClick={()=>setMode(m.id)}>{m.label}</button>)}
+    </div>
+
+    <div className="drill-area">
+      {mode==="conjugar" && <Conjugar verbs={data.verbs} onRecord={record} />}
+      {mode==="vocab" && <VocabQuiz vocab={data.allVocab} onRecord={record} />}
+      {mode==="gender" && <GenderDrill words={data.genderWords} onRecord={record} />}
+      {mode==="serest" && <SerEstarDrill data={data.serEstar} onRecord={record} />}
+      {mode==="prep" && <PrepDrill data={data.prepositions} onRecord={record} />}
+      {mode==="preencha" && <FillGap data={data.phrases} onRecord={record} />}
+      {mode==="build" && <SentenceBuilder data={data.sentences} onRecord={record} />}
+      {mode==="rig" && <RigScenario data={data.rigScenarios} onRecord={record} />}
+    </div>
+
+    <div className="footer">Built from Sophia's lessons · Seadrill edition</div>
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

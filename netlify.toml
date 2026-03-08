@@ -1,0 +1,15 @@
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.fetch-doc]
+  timeout = 15
+
+[functions.parse]
+  timeout = 60
+
+[functions.data-store]
+  timeout = 10
