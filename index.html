@@ -639,9 +639,9 @@ function App() {
   const [lastSync, setLastSync] = useState(LS.get("lastSync",""));
   const [cloudLoaded, setCloudLoaded] = useState(false);
 
-  // Load from cloud on mount
+  // Load from server on mount
   useEffect(() => {
-    fetch("/.netlify/functions/data-store")
+    fetch("/api/data")
       .then(r => r.json())
       .then(cloud => {
         if (cloud && Object.keys(cloud).length > 0) {
@@ -662,7 +662,7 @@ function App() {
     if (!cloudLoaded) return;
     clearTimeout(statsTimer.current);
     statsTimer.current = setTimeout(() => {
-      fetch("/.netlify/functions/data-store", {
+      fetch("/api/data", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ action: "save-stats", stats })
@@ -678,63 +678,20 @@ function App() {
   };
 
   const doSync = async () => {
-    setSyncing(true); setSyncMsg("Fetching doc...");
+    setSyncing(true); setSyncMsg("Syncing...");
     try {
-      const docRes = await fetch("/.netlify/functions/fetch-doc");
-      if (!docRes.ok) throw new Error("Doc fetch failed: " + docRes.status);
-      const docJson = await docRes.json();
-      const text = docJson.text;
-      if (!text) throw new Error("Empty doc");
+      const res = await fetch("/api/sync", { method: "POST" });
+      if (!res.ok) throw new Error("Sync failed: " + res.status);
+      const cloud = await res.json();
 
       const prevSynced = LS.get("synced", {});
       const prevTotalVerbs = mergeData(VERBS, prevSynced?.verbs, v=>v.infinitive).length;
       const prevTotalVocab = mergeData(VOCABULARY, prevSynced?.vocabulary, v=>v.portuguese).length;
 
-      const sections = ["verbs","vocabulary","exercises"];
-      const results = {};
+      if (cloud.synced) LS.set("synced", cloud.synced);
+      if (cloud.lastSync) { LS.set("lastSync", cloud.lastSync); setLastSync(cloud.lastSync); }
 
-      // Run sequentially to avoid timeouts
-      for (const section of sections) {
-        setSyncMsg(`Parsing ${section}...`);
-        try {
-          const res = await fetch("/.netlify/functions/parse", {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({ text, section })
-          });
-          const responseText = await res.text();
-          try {
-            const json = JSON.parse(responseText);
-            results[section] = json.data;
-          } catch { results[section] = null; }
-        } catch { results[section] = null; }
-      }
-
-      // Merge new synced data with any previously synced data (accumulate across syncs)
-      const mergeSynced = (prev, curr, keyFn) => {
-        if (!curr?.length) return prev || [];
-        if (!prev?.length) return curr;
-        const seen = new Set(prev.map(keyFn));
-        return [...prev, ...curr.filter(i => !seen.has(keyFn(i)))];
-      };
-
-      const syncData = {
-        verbs: mergeSynced(prevSynced?.verbs, results.verbs, v=>v.infinitive),
-        vocabulary: mergeSynced(prevSynced?.vocabulary, results.vocabulary, v=>v.portuguese),
-        rig_vocab: mergeSynced(prevSynced?.rig_vocab, results.vocabulary?.filter(v => ["rig","ship","drilling","operations","machines","crew","safety","navigation"].includes(v.category)), v=>v.portuguese),
-        ser_estar: mergeSynced(prevSynced?.ser_estar, results.exercises?.ser_estar, v=>v.phrase),
-        prepositions: mergeSynced(prevSynced?.prepositions, results.exercises?.prepositions, v=>v.phrase),
-        phrases: mergeSynced(prevSynced?.phrases, results.exercises?.phrases, v=>v.phrase),
-        sentences: mergeSynced(prevSynced?.sentences, results.exercises?.sentences, v=>v.english),
-        rig_scenarios: mergeSynced(prevSynced?.rig_scenarios, results.exercises?.rig_scenarios, v=>v.situation),
-      };
-
-      LS.set("synced", syncData);
-      const now = new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-      LS.set("lastSync", now);
-      setLastSync(now);
-
-      // Calculate actual new items vs what we had before this sync
+      const syncData = cloud.synced || {};
       const newTotalVerbs = mergeData(VERBS, syncData.verbs, v=>v.infinitive).length;
       const newTotalVocab = mergeData(VOCABULARY, syncData.vocabulary, v=>v.portuguese).length;
       const addedVerbs = newTotalVerbs - prevTotalVerbs;
@@ -745,13 +702,6 @@ function App() {
         : `✓ +${addedVerbs} verbs, +${addedVocab} words (${newTotalVerbs} total)`;
       setSyncMsg(msg);
       LS.set("syncMsg", msg);
-
-      // Save to cloud for cross-device access
-      fetch("/.netlify/functions/data-store", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ action: "save", synced: syncData, stats, lastSync: now, syncMsg: msg })
-      }).catch(() => {});
     } catch (err) {
       setSyncMsg("✗ " + err.message);
     } finally {
