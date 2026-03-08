@@ -46,13 +46,17 @@ function recoverJSON(text) {
 async function fetchDoc() {
   console.log("[fetch] Email:", process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL);
   console.log("[fetch] Doc ID:", process.env.GOOGLE_DOC_ID);
-  console.log("[fetch] Key starts with:", process.env.GOOGLE_PRIVATE_KEY?.substring(0, 30));
+  // Handle ALL possible newline formats from env vars
+  let privateKey = process.env.GOOGLE_PRIVATE_KEY || "";
+  console.log("[fetch] Raw key length:", privateKey.length);
+  console.log("[fetch] Has literal backslash-n:", privateKey.includes("\\n"));
+  console.log("[fetch] Has real newlines:", privateKey.includes("\n"));
 
-  // Handle both literal \n strings and already-real newlines
-  let privateKey = process.env.GOOGLE_PRIVATE_KEY;
-  if (privateKey.includes("\\n")) {
-    privateKey = privateKey.replace(/\\n/g, "\n");
-  }
+  // Replace literal \n with real newlines
+  privateKey = privateKey.split("\\n").join("\n");
+
+  console.log("[fetch] Processed key starts with:", privateKey.substring(0, 30));
+  console.log("[fetch] Processed key has newlines:", privateKey.includes("\n"));
 
   const auth = new google.auth.JWT(
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
