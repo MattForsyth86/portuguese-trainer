@@ -44,6 +44,10 @@ function recoverJSON(text) {
 // ---------- Google Doc fetch ----------
 
 async function fetchDoc() {
+  console.log("[fetch] Email:", process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL);
+  console.log("[fetch] Doc ID:", process.env.GOOGLE_DOC_ID);
+  console.log("[fetch] Key starts with:", process.env.GOOGLE_PRIVATE_KEY?.substring(0, 30));
+
   const auth = new google.auth.JWT(
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     null,
@@ -210,6 +214,8 @@ async function runSync() {
     return cached;
   } catch (err) {
     console.error("[sync] Sync failed:", err.message);
+    if (err.response) console.error("[sync] API response:", err.response.status, err.response.statusText);
+    if (err.errors) console.error("[sync] Errors:", JSON.stringify(err.errors));
     throw err;
   }
 }
