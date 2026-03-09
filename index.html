@@ -499,17 +499,23 @@ function GenderDrill({ words, onRecord }) {
 
 function SerEstarDrill({ data, onRecord }) {
   const [q, setQ] = useState(null);
+  const [opts, setOpts] = useState([]);
   const [selected, setSelected] = useState(null);
 
-  const next = useCallback(() => { setQ(pick(data)); setSelected(null); }, [data]);
+  const next = useCallback(() => {
+    const item = pick(data);
+    if (!item) return;
+    const serOpts = ["sou","é","somos","são"];
+    const estarOpts = ["estou","está","estamos","estão"];
+    const allOpts = [...new Set([item.answer, ...shuffle([...serOpts,...estarOpts])])].slice(0,4);
+    const finalOpts = shuffle(allOpts.includes(item.answer) ? allOpts : [item.answer, ...allOpts.slice(0,3)]);
+    setQ(item);
+    setOpts(finalOpts);
+    setSelected(null);
+  }, [data]);
   useEffect(() => { if(data.length) next(); }, [data.length]);
 
   if (!q) return null;
-
-  const serOpts = ["sou","é","somos","são"];
-  const estarOpts = ["estou","está","estamos","estão"];
-  const allOpts = [...new Set([q.answer, ...shuffle([...serOpts,...estarOpts])])].slice(0,4);
-  const opts = shuffle(allOpts.includes(q.answer) ? allOpts : [q.answer, ...allOpts.slice(0,3)]);
 
   return <div className="drill-card">
     <div className="tense">SER vs ESTAR</div>
@@ -819,7 +825,7 @@ function ListeningDrill({ vocab, sentences, onRecord }) {
     <div className="drill-card">
       <div className="tense">OUVIR</div>
       <button className={`listen-btn ${playing ? 'playing' : ''}`} onClick={() => speak(q.text)}>
-        {playing ? '...' : '\u25B6'}
+        {playing ? '...' : '▶'}
       </button>
       <div className="hint" style={{textAlign:'center',marginBottom:'12px'}}>{q.hint}</div>
       <div className="input-row">
@@ -827,11 +833,11 @@ function ListeningDrill({ vocab, sentences, onRecord }) {
           onKeyDown={e => { if (e.key === 'Enter') { if (result && result.status !== 'close') next(); else check(); } }}
           placeholder="Type what you hear..." autoComplete="off" autoCapitalize="off" />
         <button className="go-btn" onClick={() => { if (result && result.status !== 'close') next(); else check(); }}>
-          {result && result.status !== 'close' ? '\u2192' : 'Go'}
+          {result && result.status !== 'close' ? '→' : 'Go'}
         </button>
       </div>
       {result && <div className={`feedback ${result.status === 'correct' ? 'correct' : result.status === 'close' ? 'close' : 'wrong'}`}>
-        {result.status === 'correct' ? '\u2713 Correct!' : result.status === 'close' ? `\u26A0 Close! Check accents \u2192 ${q.text}` : `\u2717 ${q.text}`}
+        {result.status === 'correct' ? '✓ Correct!' : result.status === 'close' ? `⚠ Close! Check accents → ${q.text}` : `✗ ${q.text}`}
       </div>}
     </div>
   </>;
@@ -993,12 +999,12 @@ function App() {
       const addedVocab = newTotalVocab - prevTotalVocab;
 
       const msg = addedVerbs === 0 && addedVocab === 0
-        ? `\u2713 Up to date (${newTotalVerbs} verbs, ${newTotalVocab} words)`
-        : `\u2713 +${addedVerbs} verbs, +${addedVocab} words (${newTotalVerbs} total)`;
+        ? `✓ Up to date (${newTotalVerbs} verbs, ${newTotalVocab} words)`
+        : `✓ +${addedVerbs} verbs, +${addedVocab} words (${newTotalVerbs} total)`;
       setSyncMsg(msg);
       LS.set("syncMsg", msg);
     } catch (err) {
-      setSyncMsg("\u2717 " + err.message);
+      setSyncMsg("✗ " + err.message);
     } finally {
       setSyncing(false);
     }
@@ -1024,18 +1030,18 @@ function App() {
 
   return <div className="app">
     <div className="header">
-      <div className="logo">Portugu\u00EAs.</div>
+      <div className="logo">Português.</div>
       <div className="stats-badge">
         <span>{totalVerbs} verbs</span>
-        <span>\u00B7</span>
+        <span>·</span>
         <span>{totalWords} words</span>
-        {level?.cefr && <><span>\u00B7</span><span className="level-badge">{level.cefr}</span></>}
+        {level?.cefr && <><span>·</span><span className="level-badge">{level.cefr}</span></>}
       </div>
     </div>
 
     <div className="score-bar">
-      <span className="streak">\uD83D\uDD25 {stats.streak}</span>
-      <span className="correct">\u2713 {stats.correct}/{stats.total}</span>
+      <span className="streak">{'🔥'} {stats.streak}</span>
+      <span className="correct">{'✓'} {stats.correct}/{stats.total}</span>
       <span className="pct">{pct}%</span>
       <button className="stats-toggle" onClick={() => setShowStats(!showStats)}>{showStats ? 'Hide Stats' : 'Stats'}</button>
     </div>
@@ -1072,7 +1078,7 @@ function App() {
       {mode==="ouvir" && <ListeningDrill vocab={data.allVocab} sentences={data.sentences} onRecord={record} />}
     </div>
 
-    <div className="footer">Built from Sophia's lessons \u00B7 Seadrill edition</div>
+    <div className="footer">Built from Sophia's lessons · Seadrill edition</div>
   </div>;
 }
 
