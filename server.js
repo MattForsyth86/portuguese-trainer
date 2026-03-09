@@ -44,7 +44,6 @@ function recoverJSON(text) {
 // ---------- Google Doc fetch ----------
 
 async function fetchDoc() {
-  // Handle literal \n in env var from Digital Ocean
   let privateKey = (process.env.GOOGLE_PRIVATE_KEY || "").split("\\n").join("\n");
   const docId = (process.env.GOOGLE_DOC_ID || "").trim();
 
@@ -87,28 +86,82 @@ async function fetchDoc() {
 
 // ---------- Claude parse ----------
 
-async function parseSection(text, section) {
+const TOKEN_LIMITS = {
+  level: 2000,
+  verbs: 16000,
+  vocabulary: 20000,
+  exercises: 24000,
+  reading: 16000,
+};
+
+async function parseSection(text, section, levelContext) {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const docText = text.substring(0, 12000);
+  const lvl = levelContext || {};
   let prompt = "";
 
-  if (section === "verbs") {
+  // ===== LEVEL DETECTION =====
+  if (section === "level") {
+    prompt = `You are a Portuguese language assessment expert. Analyze this Portuguese lesson document and determine the learner's current level.
+
+Return ONLY a JSON object:
+{
+  "cefr": "A1|A2|B1|B2",
+  "tenses_present": ["list of tenses covered in the document"],
+  "tenses_ready": ["additional tenses the learner should start learning next"],
+  "topics_covered": ["list of topic areas covered"],
+  "missing_basics": ["essential topic gaps for this level — e.g. numbers_11_to_100, months, directions, question_words, weather_terms"],
+  "recommended_complexity": "simple|simple_compound|compound_complex"
+}
+
+GUIDELINES:
+- A1: greetings, basic phrases, presente tense, numbers 1-10, basic nouns
+- A2: past tenses, daily routines, travel, food, directions, numbers to 100, ser vs estar mastered
+- B1: future/conditional, subjunctive starting, opinions, compound sentences, idioms
+- B2: all tenses fluent, abstract topics, nuanced grammar
+
+For "missing_basics", identify essential vocabulary categories a learner at this level SHOULD know but that are NOT adequately covered in the document. Be specific.
+
+For "tenses_ready", suggest the next 1-2 tenses the learner should start based on what's already in the document.
+
+TEXT:\n` + docText;
+
+  // ===== VERBS =====
+  } else if (section === "verbs") {
+    const tensesLine = lvl.tenses_present?.length
+      ? `The learner is at ${lvl.cefr || "A2"} level. They have covered: ${lvl.tenses_present.join(", ")}. They are also ready to learn: ${(lvl.tenses_ready || []).join(", ")}. Include conjugations for ALL of these tenses.`
+      : `Include conjugations for: presente, pretérito perfeito, pretérito imperfeito, imperativo.`;
+
     prompt = `You are a Portuguese language expert. Extract EVERY verb from this Portuguese lesson document — including verbs that appear in example sentences, exercises, dialogues, and vocabulary lists. Be thorough: do not skip any verb.
 
-For each verb, provide conjugations for ALL tenses mentioned or demonstrated in the document. Common tenses: presente, pretérito perfeito, pretérito imperfeito, imperativo.
+${tensesLine}
 
 IMPORTANT:
 - Include ALL pronouns: eu, você, ele/ela, nós, eles/elas
 - If a verb appears in ANY context (example sentence, conjugation table, exercise), extract it
 - Classify type correctly: irregular (stem changes or unique forms), regular_ar, regular_er, regular_ir
 - For regular verbs, provide the standard conjugation pattern even if only one form appears in the text
+- For tenses the learner is "ready" for, provide conjugations even if not explicitly in the document
 
 Return ONLY a JSON array, no other text:
 [{"infinitive":"ser","english":"to be","type":"irregular","conjugations":{"presente":{"eu":"sou","você":"é","ele/ela":"é","nós":"somos","eles/elas":"são"},"pretérito perfeito":{"eu":"fui","você":"foi","ele/ela":"foi","nós":"fomos","eles/elas":"foram"}}}]
 
 TEXT:\n` + docText;
 
+  // ===== VOCABULARY =====
   } else if (section === "vocabulary") {
+    const missingLine = lvl.missing_basics?.length
+      ? `\nSUPPLEMENTARY CONTENT — The learner is at ${lvl.cefr || "A2"} level and is missing these essential topics: ${lvl.missing_basics.join(", ")}. After extracting doc vocabulary, ALSO generate 30-40 supplementary words covering these gaps. For supplementary items, add "source":"supplementary" to the JSON object. Examples of supplementary content:
+- Numbers 11-100 (onze, doze, treze, catorze, quinze, vinte, trinta, quarenta, cinquenta, sessenta, setenta, oitenta, noventa, cem)
+- Colors (vermelho, azul, verde, amarelo, preto, branco, marrom, roxo, laranja, rosa)
+- Directions (esquerda, direita, em frente, atrás, ao lado, perto, longe, norte, sul, leste, oeste)
+- Months (janeiro through dezembro)
+- Question words (quando, onde, como, por que, quem, qual, quanto)
+- Weather (chuvoso, ensolarado, nublado, vento, tempestade, frio, quente)
+- Body parts not already in the document
+- Common food items not already in the document`
+      : "";
+
     prompt = `You are a Portuguese language expert. Extract ALL vocabulary words (NOT verbs) from this Portuguese lesson. Be thorough — include every noun, adjective, adverb, expression, and phrase that appears anywhere in the document (headings, examples, exercises, dialogues).
 
 IMPORTANT:
@@ -116,17 +169,24 @@ IMPORTANT:
 - DO include: nouns, adjectives, adverbs, prepositions, conjunctions, expressions, greetings
 - For nouns, always specify the correct gender article ("o" for masculine, "a" for feminine, null for non-gendered words)
 - Choose the most specific category that fits
+${missingLine}
 
 Return ONLY a JSON array, no other text:
 [{"portuguese":"casa","english":"house","category":"casa","gender":"a"}]
 
-Categories: essentials,greetings,days,numbers,colors,family,body,animals,weather,clothing,professions,casa,food,nature,city,time,feelings,connectors,adjectives,rig
+Categories: essentials,greetings,days,numbers,colors,family,body,animals,weather,clothing,professions,casa,food,nature,city,time,feelings,connectors,adjectives,directions,months,questions,rig
 Gender: "o","a", or null for non-nouns.
 
 TEXT:\n` + docText;
 
+  // ===== EXERCISES =====
   } else if (section === "exercises") {
+    const levelLine = lvl.cefr
+      ? `The learner is at ${lvl.cefr} level. Calibrate difficulty accordingly — mix easy, medium, and hard items.`
+      : "";
+
     prompt = `You are a Portuguese language teacher creating diverse, engaging practice exercises from a lesson document. Generate exercises that cover DIFFERENT topics, vocabulary, and sentence structures — avoid repetition.
+${levelLine}
 
 RULES FOR VARIETY:
 - Each exercise item must use DIFFERENT vocabulary and grammar from the others
@@ -136,19 +196,50 @@ RULES FOR VARIETY:
 - For sentences: mix present, past, and future tenses
 - Use vocabulary and grammar from the lesson document but create ORIGINAL sentences (not copied verbatim)
 
-Return ONLY valid JSON with 10-12 items per type:
-{"ser_estar":[{"phrase":"Eu ___ feliz.","answer":"estou","reason":"Temporary state/emotion","hint":"I am happy."}],"prepositions":[{"phrase":"Eu moro ___ Brasil.","answer":"no","hint":"I live in Brazil.","rule":"em+o=no"}],"phrases":[{"phrase":"Bom ___, tudo bem?","answer":"dia","hint":"Good morning, how are you?","category":"greetings"}],"sentences":[{"english":"I go to work.","words":["Eu","vou","trabalhar"],"category":"daily"}],"rig_scenarios":[{"situation":"Tool is broken","prompt":"Tell the crew what happened","answer":"A ferramenta quebrou","hint":"quebrar=to break","vocabulary":["ferramenta","quebrou"]}]}
+Return ONLY valid JSON with 20-25 items per type. EVERY item must include "difficulty":"easy"|"medium"|"hard":
+{"ser_estar":[{"phrase":"Eu ___ feliz.","answer":"estou","reason":"Temporary state/emotion","hint":"I am happy.","difficulty":"easy"}],"prepositions":[{"phrase":"Eu moro ___ Brasil.","answer":"no","hint":"I live in Brazil.","rule":"em+o=no","difficulty":"easy"}],"phrases":[{"phrase":"Bom ___, tudo bem?","answer":"dia","hint":"Good morning, how are you?","category":"greetings","difficulty":"easy"}],"sentences":[{"english":"I go to work.","words":["Eu","vou","trabalhar"],"category":"daily","difficulty":"easy"}],"rig_scenarios":[{"situation":"Tool is broken","prompt":"Tell the crew what happened","answer":"A ferramenta quebrou","hint":"quebrar=to break","vocabulary":["ferramenta","quebrou"],"difficulty":"medium"}]}
+
+DIFFICULTY GUIDELINES:
+- easy: basic vocabulary, present tense, simple structures, common phrases
+- medium: past tense, compound prepositions, longer sentences, less common vocabulary
+- hard: mixed tenses, complex clauses, idiomatic expressions, nuanced grammar
 
 IMPORTANT for ser_estar: always include "reason" explaining WHY ser or estar is used (permanent vs temporary, location, emotion, etc.)
 IMPORTANT for sentences: the "words" array must contain the CORRECT word order when joined with spaces.
 IMPORTANT for phrases: use varied categories (greetings, daily, rig, questions, past, food, travel, weather).
 
 TEXT:\n` + docText;
+
+  // ===== READING SENTENCES =====
+  } else if (section === "reading") {
+    const levelLine = lvl.cefr
+      ? `The learner is at ${lvl.cefr} level. Generate sentences appropriate for this level.`
+      : "Generate sentences for an A2 learner.";
+
+    prompt = `You are a Portuguese language teacher creating reading practice material. ${levelLine}
+
+Generate 20 Portuguese sentences for reading comprehension practice. Use vocabulary and grammar from the lesson document to reinforce what the learner is studying. Mix topics: daily life, work/rig scenarios, travel, food, social situations.
+
+RULES:
+- Each sentence should be a complete, natural-sounding Portuguese sentence
+- Vary the length: some short (5-8 words), some medium (8-12 words), some longer (12-18 words)
+- Use different tenses and grammatical structures
+- Include a grammar note pointing out the key learning point in each sentence
+- Tag each with difficulty: easy, medium, hard
+
+Return ONLY a JSON array:
+[{"portuguese":"O engenheiro precisa consertar a bomba antes do turno acabar.","english":"The engineer needs to fix the pump before the shift ends.","grammar_note":"antes de + infinitive = before doing something","difficulty":"medium","category":"rig"}]
+
+Categories for sentences: daily, rig, travel, food, social, weather, directions, shopping
+
+TEXT:\n` + docText;
   }
+
+  const maxTokens = TOKEN_LIMITS[section] || 16000;
 
   const response = await client.messages.create({
     model: "claude-opus-4-0",
-    max_tokens: 16000,
+    max_tokens: maxTokens,
     messages: [{ role: "user", content: prompt }],
   });
 
@@ -166,13 +257,24 @@ async function runSync() {
     const text = await fetchDoc();
     if (!text) throw new Error("Empty doc");
 
-    const sections = ["verbs", "vocabulary", "exercises"];
+    // Step 1: Detect level first
+    let levelContext = {};
+    console.log("[sync] Detecting level...");
+    try {
+      levelContext = await parseSection(text, "level");
+      console.log(`[sync] Level detected: ${levelContext.cefr || "unknown"}`);
+    } catch (err) {
+      console.error("[sync] Level detection failed (continuing with defaults):", err.message);
+    }
+
+    // Step 2: Parse all content sections with level context
+    const sections = ["verbs", "vocabulary", "exercises", "reading"];
     const results = {};
 
     for (const section of sections) {
       console.log(`[sync] Parsing ${section}...`);
       try {
-        results[section] = await parseSection(text, section);
+        results[section] = await parseSection(text, section, levelContext);
       } catch (err) {
         console.error(`[sync] Failed to parse ${section}:`, err.message);
         results[section] = null;
@@ -200,6 +302,7 @@ async function runSync() {
       phrases: mergeSynced(prevSynced.phrases, results.exercises?.phrases, v => v.phrase),
       sentences: mergeSynced(prevSynced.sentences, results.exercises?.sentences, v => v.english),
       rig_scenarios: mergeSynced(prevSynced.rig_scenarios, results.exercises?.rig_scenarios, v => v.situation),
+      reading: mergeSynced(prevSynced.reading, results.reading, v => v.portuguese),
     };
 
     const now = new Date().toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -207,6 +310,7 @@ async function runSync() {
     const cached = {
       ...existing,
       synced: syncData,
+      level: levelContext,
       lastSync: now,
       syncMsg: "✓ Synced",
     };

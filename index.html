@@ -45,8 +45,8 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none;
 .sync-btn:disabled{opacity:0.5}
 .sync-btn .dot{width:6px;height:6px;background:#000;border-radius:50%;animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 12px;flex-shrink:0}
-.mode-btn{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;text-align:center;font-size:12px;font-weight:600;color:var(--text2);transition:all 0.15s;line-height:1.3}
+.mode-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:0 16px 10px;flex-shrink:0}
+.mode-btn{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--text2);transition:all 0.15s;line-height:1.3}
 .mode-btn:hover{background:var(--card-hover);color:var(--text)}
 .mode-btn.active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
 .drill-area{flex:1;overflow-y:auto;padding:0 16px 24px;display:flex;flex-direction:column;gap:16px}
@@ -90,6 +90,41 @@ button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none;
 .settings-panel label:last-child{border-bottom:none}
 select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px;font-family:'DM Sans',sans-serif}
 @media(min-width:768px){.app{border-left:1px solid var(--border);border-right:1px solid var(--border)}}
+.daily-card{background:linear-gradient(135deg,#1a2540 0%,#1e3a5f 100%);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin:0 16px 10px;cursor:pointer;position:relative;overflow:hidden;flex-shrink:0}
+.daily-card .daily-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--amber);margin-bottom:8px}
+.daily-card .daily-pt{font-family:'Instrument Serif',serif;font-size:22px;line-height:1.3;margin-bottom:4px}
+.daily-card .daily-en{font-size:14px;color:var(--text2);opacity:0;transition:opacity 0.3s}
+.daily-card .daily-en.show{opacity:1}
+.daily-card .daily-tap{font-size:11px;color:var(--text3);position:absolute;bottom:8px;right:16px}
+.listen-btn{background:var(--surface);border:2px solid var(--border);color:var(--green);width:64px;height:64px;border-radius:50%;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;transition:all 0.2s}
+.listen-btn:hover{border-color:var(--green);background:var(--green-bg)}
+.listen-btn.playing{border-color:var(--amber);color:var(--amber);animation:pulse 1s infinite}
+.reading-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px 20px;animation:fadeIn 0.2s ease}
+.reading-card .grammar-note{font-size:12px;color:var(--amber);background:var(--amber-bg);padding:8px 12px;border-radius:6px;margin-top:8px}
+.diff-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;display:inline-block;margin-bottom:8px}
+.diff-badge.easy{background:var(--green-bg);color:var(--green)}
+.diff-badge.medium{background:var(--amber-bg);color:var(--amber)}
+.diff-badge.hard{background:var(--red-bg);color:var(--red)}
+.stats-toggle{background:none;color:var(--text3);font-size:13px;padding:4px 8px;text-decoration:underline}
+.stats-toggle:hover{color:var(--text2)}
+.stats-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin:0 16px 10px;animation:fadeIn 0.2s}
+.stats-panel h3{font-size:13px;color:var(--text2);margin-bottom:12px;font-weight:600}
+.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px}
+.stat-row .stat-label{width:70px;color:var(--text2);font-weight:500;flex-shrink:0}
+.stat-row .stat-bar{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.stat-row .stat-fill{height:100%;border-radius:4px;transition:width 0.3s}
+.stat-row .stat-pct{width:36px;text-align:right;color:var(--text3);font-weight:600}
+.weak-list{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.weak-item{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)}
+.weak-item .weak-word{color:var(--text);font-weight:500}
+.weak-item .weak-rate{color:var(--red)}
+.level-badge{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;color:var(--amber)}
+.self-rate{display:flex;gap:8px;margin-top:16px}
+.self-rate button{flex:1;padding:10px;border-radius:var(--radius-sm);font-weight:600;font-size:13px;border:1.5px solid var(--border);color:var(--text2);background:var(--surface)}
+.self-rate button:hover{border-color:var(--text3);color:var(--text)}
+.self-rate button.rate-easy{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.self-rate button.rate-ok{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.self-rate button.rate-hard{border-color:var(--red);color:var(--red);background:var(--red-bg)}
 </style>
 </head>
 <body>
@@ -254,6 +289,29 @@ const shuffle = arr => {
   return a;
 };
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+function weightedPick(arr, keyFn, weakWords) {
+  if (!arr.length) return null;
+  if (!weakWords || !Object.keys(weakWords).length) return pick(arr);
+  const now = Date.now();
+  const weights = arr.map(item => {
+    const key = keyFn(item);
+    const w = weakWords[key];
+    if (!w || (w.right + w.wrong) === 0) return 1;
+    const errorRate = w.wrong / (w.right + w.wrong);
+    const hoursSince = (now - (w.lastSeen || now)) / 3600000;
+    const recency = Math.min(hoursSince / 24, 3);
+    return 1 + errorRate * 4 + recency;
+  });
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < arr.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return arr[i];
+  }
+  return arr[arr.length - 1];
+}
+
 const normalize = s => s?.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
 const exactMatch = (a, b) => a?.toLowerCase().trim() === b?.toLowerCase().trim();
 const closeMatch = (a, b) => normalize(a) === normalize(b);
@@ -284,10 +342,11 @@ function useTrainerData() {
   const phrases = useMemo(() => mergeData(PHRASES, syncedData?.phrases, v=>v.phrase), [syncedData]);
   const sentences = useMemo(() => mergeData(SENTENCES, syncedData?.sentences, v=>v.english), [syncedData]);
   const rigScenarios = useMemo(() => mergeData(RIG_SCENARIOS, syncedData?.rig_scenarios, v=>v.situation), [syncedData]);
+  const reading = useMemo(() => syncedData?.reading || [], [syncedData]);
   const allVocab = useMemo(() => [...vocabulary, ...rigVocab], [vocabulary, rigVocab]);
   const genderWords = useMemo(() => allVocab.filter(v => v.gender), [allVocab]);
 
-  return { verbs, vocabulary, rigVocab, serEstar, prepositions, phrases, sentences, rigScenarios, allVocab, genderWords };
+  return { verbs, vocabulary, rigVocab, serEstar, prepositions, phrases, sentences, rigScenarios, allVocab, genderWords, reading };
 }
 
 // ============================================================
@@ -329,12 +388,12 @@ function Conjugar({ verbs, onRecord }) {
     if (!q || !input.trim()) return;
     if (exactMatch(input, q.answer)) {
       setResult({ status: 'correct', answer: q.answer });
-      onRecord(true);
+      onRecord(true, q.verb.infinitive);
     } else if (closeMatch(input, q.answer)) {
       setResult({ status: 'close', answer: q.answer });
     } else {
       setResult({ status: 'wrong', answer: q.answer });
-      onRecord(false);
+      onRecord(false, q.verb.infinitive);
     }
   };
 
@@ -399,7 +458,7 @@ function VocabQuiz({ vocab, onRecord }) {
             if (correct(w)) cls += " selected-correct";
             else if (selected === i && !correct(w)) cls += " selected-wrong";
           }
-          return <button key={i} className={cls} disabled={selected!==null} onClick={()=>{ setSelected(i); onRecord(correct(w)); }}>{getLabel(w)}</button>;
+          return <button key={i} className={cls} disabled={selected!==null} onClick={()=>{ setSelected(i); onRecord(correct(w), q.word.portuguese); }}>{getLabel(w)}</button>;
         })}
       </div>
       {selected !== null && <button className="next-btn" onClick={next}>Next →</button>}
@@ -431,7 +490,7 @@ function GenderDrill({ words, onRecord }) {
           if (g === q.gender) cls += " selected-correct";
           else if (selected === g && g !== q.gender) cls += " selected-wrong";
         }
-        return <button key={g} className={cls} style={{fontSize:'24px',fontFamily:"'Instrument Serif',serif"}} disabled={selected!==null} onClick={()=>{ setSelected(g); onRecord(g===q.gender); }}>{g}</button>;
+        return <button key={g} className={cls} style={{fontSize:'24px',fontFamily:"'Instrument Serif',serif"}} disabled={selected!==null} onClick={()=>{ setSelected(g); onRecord(g===q.gender, q.portuguese); }}>{g}</button>;
       })}
     </div>
     {selected !== null && <button className="next-btn" onClick={next}>Next →</button>}
@@ -463,7 +522,7 @@ function SerEstarDrill({ data, onRecord }) {
           if (o === q.answer) cls += " selected-correct";
           else if (selected === i && o !== q.answer) cls += " selected-wrong";
         }
-        return <button key={i} className={cls} disabled={selected!==null} onClick={()=>{ setSelected(i); onRecord(o===q.answer); }}>{o}</button>;
+        return <button key={i} className={cls} disabled={selected!==null} onClick={()=>{ setSelected(i); onRecord(o===q.answer, q.phrase); }}>{o}</button>;
       })}
     </div>
     {selected !== null && <div className="feedback correct" style={{background:'var(--surface)'}}><span style={{color:'var(--text2)'}}>{q.reason}</span></div>}
@@ -483,11 +542,11 @@ function PrepDrill({ data, onRecord }) {
   const check = () => {
     if (!q||!input.trim()) return;
     if (exactMatch(input, q.answer)) {
-      setResult({ status: 'correct' }); onRecord(true);
+      setResult({ status: 'correct' }); onRecord(true, q.answer);
     } else if (closeMatch(input, q.answer)) {
       setResult({ status: 'close' });
     } else {
-      setResult({ status: 'wrong' }); onRecord(false);
+      setResult({ status: 'wrong' }); onRecord(false, q.answer);
     }
   };
 
@@ -520,11 +579,11 @@ function FillGap({ data, onRecord }) {
   const check = () => {
     if (!q||!input.trim()) return;
     if (exactMatch(input, q.answer)) {
-      setResult({ status: 'correct' }); onRecord(true);
+      setResult({ status: 'correct' }); onRecord(true, q.answer);
     } else if (closeMatch(input, q.answer)) {
       setResult({ status: 'close' });
     } else {
-      setResult({ status: 'wrong' }); onRecord(false);
+      setResult({ status: 'wrong' }); onRecord(false, q.answer);
     }
   };
 
@@ -569,7 +628,7 @@ function SentenceBuilder({ data, onRecord }) {
     const expected = q.words.join(" ");
     const correct = normalize(built) === normalize(expected);
     setResult({ correct, expected });
-    onRecord(correct);
+    onRecord(correct, q.english);
   };
 
   if (!q) return null;
@@ -608,7 +667,7 @@ function RigScenario({ data, onRecord }) {
     if (!q||!input.trim()) return;
     const correct = normalize(input) === normalize(q.answer);
     setResult({ correct });
-    onRecord(correct);
+    onRecord(correct, q.answer);
   };
 
   if (!q) return null;
@@ -628,16 +687,222 @@ function RigScenario({ data, onRecord }) {
 }
 
 // ============================================================
+// DAILY SENTENCE
+// ============================================================
+function DailySentence({ sentences, reading }) {
+  const [revealed, setRevealed] = useState(false);
+  const allSentences = useMemo(() => {
+    const r = (reading || []).filter(s => s.portuguese && s.english);
+    return r.length ? r : sentences;
+  }, [reading, sentences]);
+  const todaySentence = useMemo(() => {
+    if (!allSentences.length) return null;
+    const d = new Date();
+    const hash = d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+    return allSentences[hash % allSentences.length];
+  }, [allSentences]);
+
+  if (!todaySentence) return null;
+  const pt = todaySentence.portuguese || todaySentence.words?.join(" ") || "";
+  const en = todaySentence.english;
+
+  return <div className="daily-card" onClick={() => setRevealed(!revealed)}>
+    <div className="daily-label">Frase do Dia</div>
+    <div className="daily-pt">{pt}</div>
+    <div className={`daily-en ${revealed ? 'show' : ''}`}>{en}</div>
+    {!revealed && <div className="daily-tap">tap to reveal</div>}
+  </div>;
+}
+
+// ============================================================
+// LEITURA (Reading Practice)
+// ============================================================
+function SentenceReview({ data, onRecord }) {
+  const [q, setQ] = useState(null);
+  const [phase, setPhase] = useState("read");
+
+  const next = useCallback(() => {
+    const item = pick(data);
+    setQ(item);
+    setPhase("read");
+  }, [data]);
+
+  useEffect(() => { if (data.length) next(); }, [data.length]);
+
+  if (!q) return <div className="drill-card"><p style={{color:'var(--text2)'}}>No reading sentences yet. Sync to generate!</p></div>;
+
+  const rate = (level) => {
+    onRecord(level !== 'hard', q.portuguese);
+    setTimeout(next, 300);
+  };
+
+  return <div className="reading-card">
+    <div className="tense">LEITURA</div>
+    {q.difficulty && <span className={`diff-badge ${q.difficulty}`}>{q.difficulty}</span>}
+    <div className="word" style={{fontSize:'22px',fontFamily:"'DM Sans',sans-serif",fontWeight:600,lineHeight:1.6}}>{q.portuguese}</div>
+    {q.category && <div className="hint" style={{marginBottom:'12px'}}>{q.category}</div>}
+    {phase === "read" && <button className="go-btn" style={{width:'100%'}} onClick={() => setPhase("reveal")}>Show Translation</button>}
+    {phase === "reveal" && <>
+      <div style={{padding:'12px',background:'var(--surface)',borderRadius:'8px',marginBottom:'8px'}}>
+        <div style={{fontSize:'16px',color:'var(--text)'}}>{q.english}</div>
+      </div>
+      {q.grammar_note && <div className="grammar-note">{q.grammar_note}</div>}
+      <div className="self-rate">
+        <button className="rate-easy" onClick={() => rate('easy')}>Easy</button>
+        <button className="rate-ok" onClick={() => rate('ok')}>OK</button>
+        <button className="rate-hard" onClick={() => rate('hard')}>Hard</button>
+      </div>
+    </>}
+  </div>;
+}
+
+// ============================================================
+// OUVIR (Listening Practice)
+// ============================================================
+function ListeningDrill({ vocab, sentences, onRecord }) {
+  const [drillType, setDrillType] = useState("words");
+  const [q, setQ] = useState(null);
+  const [input, setInput] = useState("");
+  const [result, setResult] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const inputRef = useRef(null);
+
+  const items = useMemo(() => {
+    if (drillType === "words") return vocab.map(v => ({ text: v.portuguese, hint: v.english, key: v.portuguese }));
+    return sentences.map(s => ({ text: s.words ? s.words.join(" ") : s.portuguese, hint: s.english, key: s.english || s.portuguese }));
+  }, [drillType, vocab, sentences]);
+
+  const speak = useCallback((text) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "pt-BR";
+    u.rate = 0.85;
+    const voices = window.speechSynthesis.getVoices();
+    const ptVoice = voices.find(v => v.lang.startsWith("pt"));
+    if (ptVoice) u.voice = ptVoice;
+    u.onstart = () => setPlaying(true);
+    u.onend = () => setPlaying(false);
+    window.speechSynthesis.speak(u);
+  }, []);
+
+  const next = useCallback(() => {
+    const item = pick(items);
+    if (!item) return;
+    setQ(item);
+    setInput("");
+    setResult(null);
+    setTimeout(() => { speak(item.text); inputRef.current?.focus(); }, 200);
+  }, [items, speak]);
+
+  useEffect(() => { if (items.length) next(); }, [drillType, items.length]);
+  useEffect(() => { window.speechSynthesis?.getVoices(); }, []);
+
+  const check = () => {
+    if (!q || !input.trim()) return;
+    if (exactMatch(input, q.text)) {
+      setResult({ status: 'correct' }); onRecord(true, q.key);
+    } else if (closeMatch(input, q.text)) {
+      setResult({ status: 'close' });
+    } else {
+      setResult({ status: 'wrong' }); onRecord(false, q.key);
+    }
+  };
+
+  if (!q) return <div className="drill-card"><p style={{color:'var(--text2)'}}>No audio items available</p></div>;
+
+  return <>
+    <div className="filter-row">
+      <button className={`filter-pill ${drillType==='words'?'active':''}`} onClick={() => setDrillType('words')}>Words</button>
+      <button className={`filter-pill ${drillType==='sentences'?'active':''}`} onClick={() => setDrillType('sentences')}>Sentences</button>
+    </div>
+    <div className="drill-card">
+      <div className="tense">OUVIR</div>
+      <button className={`listen-btn ${playing ? 'playing' : ''}`} onClick={() => speak(q.text)}>
+        {playing ? '...' : '\u25B6'}
+      </button>
+      <div className="hint" style={{textAlign:'center',marginBottom:'12px'}}>{q.hint}</div>
+      <div className="input-row">
+        <input ref={inputRef} value={input} onChange={e => { setInput(e.target.value); if (result?.status === 'close') setResult(null); }}
+          onKeyDown={e => { if (e.key === 'Enter') { if (result && result.status !== 'close') next(); else check(); } }}
+          placeholder="Type what you hear..." autoComplete="off" autoCapitalize="off" />
+        <button className="go-btn" onClick={() => { if (result && result.status !== 'close') next(); else check(); }}>
+          {result && result.status !== 'close' ? '\u2192' : 'Go'}
+        </button>
+      </div>
+      {result && <div className={`feedback ${result.status === 'correct' ? 'correct' : result.status === 'close' ? 'close' : 'wrong'}`}>
+        {result.status === 'correct' ? '\u2713 Correct!' : result.status === 'close' ? `\u26A0 Close! Check accents \u2192 ${q.text}` : `\u2717 ${q.text}`}
+      </div>}
+    </div>
+  </>;
+}
+
+// ============================================================
+// STATS PANEL
+// ============================================================
+function StatsPanel({ stats, weakWords, level }) {
+  const modeStats = stats.modes || {};
+  const modeList = [
+    {id:'conjugar', label:'Conjugar'}, {id:'vocab', label:'Vocab'}, {id:'gender', label:'O vs A'},
+    {id:'serest', label:'Ser/Estar'}, {id:'prep', label:'Prep'}, {id:'preencha', label:'Preencha'},
+    {id:'build', label:'Sentence'}, {id:'rig', label:'Rig'}, {id:'leitura', label:'Leitura'}, {id:'ouvir', label:'Ouvir'},
+  ];
+
+  const weakList = useMemo(() => {
+    if (!weakWords) return [];
+    return Object.entries(weakWords)
+      .filter(([, w]) => (w.right + w.wrong) >= 3)
+      .map(([word, w]) => ({ word, rate: Math.round(w.wrong / (w.right + w.wrong) * 100), total: w.right + w.wrong }))
+      .sort((a, b) => b.rate - a.rate)
+      .slice(0, 10);
+  }, [weakWords]);
+
+  return <div className="stats-panel">
+    {level?.cefr && <div style={{marginBottom:'12px'}}><span className="level-badge">{level.cefr}</span></div>}
+    <h3>Mode Accuracy</h3>
+    {modeList.map(m => {
+      const ms = modeStats[m.id] || { correct: 0, total: 0 };
+      const pct = ms.total > 0 ? Math.round(ms.correct / ms.total * 100) : 0;
+      const color = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : pct > 0 ? 'var(--red)' : 'var(--text3)';
+      return <div key={m.id} className="stat-row">
+        <span className="stat-label">{m.label}</span>
+        <div className="stat-bar"><div className="stat-fill" style={{width: pct+'%', background: color}}></div></div>
+        <span className="stat-pct" style={{color}}>{ms.total > 0 ? pct+'%' : '-'}</span>
+      </div>;
+    })}
+    {weakList.length > 0 && <div className="weak-list">
+      <h3>Weak Words</h3>
+      {weakList.map(w => <div key={w.word} className="weak-item">
+        <span className="weak-word">{w.word}</span>
+        <span className="weak-rate">{w.rate}% wrong ({w.total})</span>
+      </div>)}
+    </div>}
+  </div>;
+}
+
+// ============================================================
 // MAIN APP
 // ============================================================
 function App() {
   const data = useTrainerData();
   const [mode, setMode] = useState("conjugar");
-  const [stats, setStats] = useState(LS.get("stats",{correct:0,total:0,streak:0,best:0}));
+  const [showStats, setShowStats] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState(LS.get("syncMsg",""));
   const [lastSync, setLastSync] = useState(LS.get("lastSync",""));
   const [cloudLoaded, setCloudLoaded] = useState(false);
+  const [level, setLevel] = useState(LS.get("level", null));
+
+  // Initialize stats with per-mode tracking
+  const defaultStats = {correct:0,total:0,streak:0,best:0,modes:{}};
+  const [stats, setStats] = useState(() => {
+    const saved = LS.get("stats", defaultStats);
+    if (!saved.modes) saved.modes = {};
+    return saved;
+  });
+
+  // Weak word tracking
+  const [weakWords, setWeakWords] = useState(() => LS.get("weakWords", {}));
 
   // Load from server on mount
   useEffect(() => {
@@ -646,9 +911,15 @@ function App() {
       .then(cloud => {
         if (cloud && Object.keys(cloud).length > 0) {
           if (cloud.synced) LS.set("synced", cloud.synced);
-          if (cloud.stats) { LS.set("stats", cloud.stats); setStats(cloud.stats); }
+          if (cloud.stats) {
+            const s = cloud.stats;
+            if (!s.modes) s.modes = {};
+            LS.set("stats", s);
+            setStats(s);
+          }
           if (cloud.lastSync) { LS.set("lastSync", cloud.lastSync); setLastSync(cloud.lastSync); }
           if (cloud.syncMsg) { LS.set("syncMsg", cloud.syncMsg); setSyncMsg(cloud.syncMsg); }
+          if (cloud.level) { LS.set("level", cloud.level); setLevel(cloud.level); }
         }
         setCloudLoaded(true);
       })
@@ -659,6 +930,7 @@ function App() {
   const statsTimer = useRef(null);
   useEffect(() => {
     LS.set("stats", stats);
+    LS.set("weakWords", weakWords);
     if (!cloudLoaded) return;
     clearTimeout(statsTimer.current);
     statsTimer.current = setTimeout(() => {
@@ -668,14 +940,36 @@ function App() {
         body: JSON.stringify({ action: "save-stats", stats })
       }).catch(() => {});
     }, 3000);
-  }, [stats, cloudLoaded]);
+  }, [stats, weakWords, cloudLoaded]);
 
-  const record = (correct) => {
+  const record = useCallback((correct, itemKey) => {
     setStats(s => {
       const streak = correct ? s.streak + 1 : 0;
-      return { correct: s.correct + (correct?1:0), total: s.total + 1, streak, best: Math.max(s.best, streak) };
+      const modes = { ...s.modes };
+      const ms = modes[mode] || { correct: 0, total: 0 };
+      modes[mode] = { correct: ms.correct + (correct ? 1 : 0), total: ms.total + 1 };
+      return {
+        correct: s.correct + (correct ? 1 : 0),
+        total: s.total + 1,
+        streak,
+        best: Math.max(s.best, streak),
+        modes,
+      };
     });
-  };
+    if (itemKey) {
+      setWeakWords(ww => {
+        const entry = ww[itemKey] || { right: 0, wrong: 0, lastSeen: 0 };
+        return {
+          ...ww,
+          [itemKey]: {
+            right: entry.right + (correct ? 1 : 0),
+            wrong: entry.wrong + (correct ? 0 : 1),
+            lastSeen: Date.now(),
+          },
+        };
+      });
+    }
+  }, [mode]);
 
   const doSync = async () => {
     setSyncing(true); setSyncMsg("Syncing...");
@@ -690,6 +984,7 @@ function App() {
 
       if (cloud.synced) LS.set("synced", cloud.synced);
       if (cloud.lastSync) { LS.set("lastSync", cloud.lastSync); setLastSync(cloud.lastSync); }
+      if (cloud.level) { LS.set("level", cloud.level); setLevel(cloud.level); }
 
       const syncData = cloud.synced || {};
       const newTotalVerbs = mergeData(VERBS, syncData.verbs, v=>v.infinitive).length;
@@ -698,12 +993,12 @@ function App() {
       const addedVocab = newTotalVocab - prevTotalVocab;
 
       const msg = addedVerbs === 0 && addedVocab === 0
-        ? `✓ Up to date (${newTotalVerbs} verbs, ${newTotalVocab} words)`
-        : `✓ +${addedVerbs} verbs, +${addedVocab} words (${newTotalVerbs} total)`;
+        ? `\u2713 Up to date (${newTotalVerbs} verbs, ${newTotalVocab} words)`
+        : `\u2713 +${addedVerbs} verbs, +${addedVocab} words (${newTotalVerbs} total)`;
       setSyncMsg(msg);
       LS.set("syncMsg", msg);
     } catch (err) {
-      setSyncMsg("✗ " + err.message);
+      setSyncMsg("\u2717 " + err.message);
     } finally {
       setSyncing(false);
     }
@@ -721,25 +1016,33 @@ function App() {
     {id:"preencha",label:"Preencha"},
     {id:"build",label:"Sentence"},
     {id:"rig",label:"Rig"},
+    {id:"leitura",label:"Leitura"},
+    {id:"ouvir",label:"Ouvir"},
   ];
 
   const pct = stats.total > 0 ? Math.round(stats.correct/stats.total*100) : 0;
 
   return <div className="app">
     <div className="header">
-      <div className="logo">Português.</div>
+      <div className="logo">Portugu\u00EAs.</div>
       <div className="stats-badge">
         <span>{totalVerbs} verbs</span>
-        <span>·</span>
+        <span>\u00B7</span>
         <span>{totalWords} words</span>
+        {level?.cefr && <><span>\u00B7</span><span className="level-badge">{level.cefr}</span></>}
       </div>
     </div>
 
     <div className="score-bar">
-      <span className="streak">🔥 {stats.streak}</span>
-      <span className="correct">✓ {stats.correct}/{stats.total}</span>
+      <span className="streak">\uD83D\uDD25 {stats.streak}</span>
+      <span className="correct">\u2713 {stats.correct}/{stats.total}</span>
       <span className="pct">{pct}%</span>
+      <button className="stats-toggle" onClick={() => setShowStats(!showStats)}>{showStats ? 'Hide Stats' : 'Stats'}</button>
     </div>
+
+    {showStats && <StatsPanel stats={stats} weakWords={weakWords} level={level} />}
+
+    <DailySentence sentences={data.sentences} reading={data.reading} />
 
     <div className="sync-bar">
       <div className="sync-info">
@@ -765,9 +1068,11 @@ function App() {
       {mode==="preencha" && <FillGap data={data.phrases} onRecord={record} />}
       {mode==="build" && <SentenceBuilder data={data.sentences} onRecord={record} />}
       {mode==="rig" && <RigScenario data={data.rigScenarios} onRecord={record} />}
+      {mode==="leitura" && <SentenceReview data={data.reading.length ? data.reading : data.sentences.map(s => ({portuguese: s.words.join(" "), english: s.english, grammar_note: "", difficulty: "medium", category: s.category}))} onRecord={record} />}
+      {mode==="ouvir" && <ListeningDrill vocab={data.allVocab} sentences={data.sentences} onRecord={record} />}
     </div>
 
-    <div className="footer">Built from Sophia's lessons · Seadrill edition</div>
+    <div className="footer">Built from Sophia's lessons \u00B7 Seadrill edition</div>
   </div>;
 }
 
